@@ -25,8 +25,8 @@ class GraphqurlCommand extends Command {
 
     let result = await Query(this, flags.endpoint, headers, queryString, variables, flags.name);
     if (result != null) {
-      this.log(JSON.stringify(result, null, 2));
       cli.action.stop();
+      this.log(JSON.stringify(result, null, 2));
     }
   }
 

@@ -112,7 +112,6 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
       response = null;
     } else {
       response = await q;
-      cli.action.stop();
     }
   } catch (err) {
     // console.log(err);
