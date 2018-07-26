@@ -1,7 +1,6 @@
 const { HttpLink } = require('apollo-link-http');
 const { ApolloClient } = require('apollo-client');
-const { split } = require('apollo-link');
-const { getMainDefinition } = require('apollo-utilities');
+const { execute } = require('apollo-link');
 const { SubscriptionClient } = require('subscriptions-transport-ws');
 const { WebSocketLink } = require('apollo-link-ws');
 const ws = require('ws');
@@ -20,8 +19,8 @@ const mkWsUri = function (uri) {
 };
 
 const mkWsLink = function(uri, headers) {
-  return new WebSocketLink(new SubscriptionClient(
-    mkWsUri(uri),
+  const wsLink = new WebSocketLink(new SubscriptionClient(
+    uri,
     {
       reconnect: true,
       connectionParams: {
@@ -30,23 +29,12 @@ const mkWsLink = function(uri, headers) {
     },
     ws
   ));
-};
-
-const mkConditionalLink = function(uri, headers) {
-  const httpLink = new HttpLink({ uri, fetch: fetch });
-  return split(
-    ({ query }) => {
-      const { kind, operation } = getMainDefinition(query);
-      return kind === 'OperationDefinition' && operation === 'subscription';
-    },
-    mkWsLink(uri, headers),
-    httpLink,
-  );
+  return wsLink;
 };
 
 const Query = async function (ctx, endpoint, headers, query, variables, name) {
   const client = new ApolloClient({
-    link: mkConditionalLink(endpoint, headers),
+    link: new HttpLink({ uri: endpoint, fetch: fetch }),
     cache: new InMemoryCache({ addTypename: false })
   });
 
@@ -99,10 +87,13 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
         }
       });
     } else if (queryType == 'subscription') {
-      const observable = client.subscribe({
-        query: input,
-        variables
-      });
+      const observable = execute(
+        mkWsLink(endpoint, headers),
+        {
+          query: input,
+          variables
+        }
+      );
       q = observable;
     }
   } catch (err) {
@@ -113,17 +104,23 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
   let response;
   try {
     if (queryType == 'subscription') {
-      response = 'Subscribed to the query';
-      q.subscribe({
+      response = 'Subscribed to the event';
+      let firstQuery = true;
+      q.subscribe(
         function (event) {
-          ctx.log('Here');
-          ctx.log(event);
+          if (firstQuery) {
+            ctx.log('Response:');
+            firstQuery = false;
+          } else {
+            ctx.log('Event:');
+          }
+          ctx.log(JSON.stringify(event, null,  2));
         },
         function (err) {
           ctx.log('here');
           handleServerError(err);
         }
-      });
+      );
     } else {
       response = await q;
       console.log(response);
