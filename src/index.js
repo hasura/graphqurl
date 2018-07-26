@@ -23,10 +23,11 @@ class GraphqurlCommand extends Command {
       this.error('pass a query as an argument or as a file (--queryFile)');
     }
 
-    cli.action.start(`Executing on ${flags.endpoint}`);
-      let result = await Query(this, flags.endpoint, headers, queryString, variables, flags.name);
-    cli.action.stop();
-    this.log(JSON.stringify(result, null, 2));
+    let result = await Query(this, flags.endpoint, headers, queryString, variables, flags.name);
+    if (result != null) {
+      this.log(JSON.stringify(result, null, 2));
+      cli.action.stop();
+    }
   }
 
   parseHeaders(headersArray) {
