@@ -83,8 +83,23 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
           ctx.log(JSON.stringify(event, null,  2));
           cli.action.start('Waiting for events');
         },
-        handleSubscriptionError
+        (subError) => {
+          cli.action.stop('error');
+          const { code, path, error } = subError.originalError;
+          throw new CLIError(`[${code}] at [${path}]: ${error}`);
+        }
       );
+      setTimeout(() => {
+        if (firstEvent) {
+          ctx.log('This is taking longer than expected.');
+          setTimeout(() => {
+            if (firstEvent) {
+              cli.action.stop('timeout');
+              throw new CLIError('Failed to connect. Please try again');
+            }
+          }, 7500);
+        }
+      }, 7500);
     }
   } catch (err) {
     // console.log(err);
@@ -116,37 +131,17 @@ const makeObservable = (query, variables, endpoint, headers) => {
   );
 };
 
-const mkWsUri = function (uri) {
-  const parsedUri = uri.split('//');
-  if (parsedUri[0] === 'https:') {
-    return `wss://${parsedUri[1]}`;
-  }
-  return uri;
-};
-
 const mkWsLink = function(uri, headers) {
-  let wsLink;
-  try {
-    wsLink = new WebSocketLink(new SubscriptionClient(
-      uri,
-      {
-        reconnect: true,
-        connectionParams: {
-          headers
-        }
-      },
-      ws
-    ));
-  } catch (e) {
-    handlegraphqlerror(e);
-  }
-  return wsLink;
-};
-
-const handleSubscriptionError = (e, ctx) => {
-  cli.action.stop('error');
-  const { code, path, error } = e.originalError;
-  throw new CLIError(`[${code}] at [${path}]: ${error}`);
+  return new WebSocketLink(new SubscriptionClient(
+    uri,
+    {
+      reconnect: true,
+      connectionParams: {
+        headers
+      }
+    },
+    ws
+  ));
 };
 
 const handleGraphQLError = (err) => {
