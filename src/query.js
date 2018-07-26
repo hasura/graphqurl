@@ -1,14 +1,52 @@
-const {HttpLink} = require('apollo-link-http');
-const {ApolloClient} = require('apollo-client');
+const { HttpLink } = require('apollo-link-http');
+const { ApolloClient } = require('apollo-client');
+const { split } = require('apollo-link');
+const { getMainDefinition } = require('apollo-utilities');
+const { SubscriptionClient } = require('subscriptions-transport-ws');
+const { WebSocketLink } = require('apollo-link-ws');
+const ws = require('ws');
 const fetch = require('node-fetch');
-const {InMemoryCache} = require('apollo-cache-inmemory');
+const { InMemoryCache } = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
 const {cli} = require('cli-ux');
-const {CLIError} = require('@oclif/errors');
+const { CLIError } = require('@oclif/errors');
 
-const Query = async function (endpoint, headers, query, variables, name) {
+const mkWsUri = function (uri) {
+  const parsedUri = uri.split('//');
+  if (parsedUri[0] === 'https:') {
+    return `wss://${parsedUri[1]}`;
+  }
+  return uri;
+};
+
+const mkWsLink = function(uri, headers) {
+  return new WebSocketLink(new SubscriptionClient(
+    mkWsUri(uri),
+    {
+      reconnect: true,
+      connectionParams: {
+        headers
+      }
+    },
+    ws
+  ));
+};
+
+const mkConditionalLink = function(uri, headers) {
+  const httpLink = new HttpLink({ uri, fetch: fetch });
+  return split(
+    ({ query }) => {
+      const { kind, operation } = getMainDefinition(query);
+      return kind === 'OperationDefinition' && operation === 'subscription';
+    },
+    mkWsLink(uri, headers),
+    httpLink,
+  );
+};
+
+const Query = async function (ctx, endpoint, headers, query, variables, name) {
   const client = new ApolloClient({
-    link: new HttpLink({ uri: endpoint, fetch: fetch }),
+    link: mkConditionalLink(endpoint, headers),
     cache: new InMemoryCache({ addTypename: false })
   });
 
@@ -42,40 +80,60 @@ const Query = async function (endpoint, headers, query, variables, name) {
     // console.log(err);
     handleGraphQLError(err);
   }
-
   let q;
   try {
     if (queryType == 'query') {
       q = client.query({
         query: input,
-        variables: variables,
+        variables,
         context: {
-          headers: headers
+          headers
         }
       });
     } else if (queryType == 'mutation') {
       q = client.mutate({
         mutation: input,
-        variables: variables,
+        variables,
         context: {
-          headers: headers
+          headers
         }
       });
+    } else if (queryType == 'subscription') {
+      const observable = client.subscribe({
+        query: input,
+        variables
+      });
+      q = observable;
     }
   } catch (err) {
     // console.log(err);
     handleGraphQLError(err);
   }
 
-  let r;
+  let response;
   try {
-    response = await q;
+    if (queryType == 'subscription') {
+      response = 'Subscribed to the query';
+      q.subscribe({
+        function (event) {
+          ctx.log('Here');
+          ctx.log(event);
+        },
+        function (err) {
+          ctx.log('here');
+          handleServerError(err);
+        }
+      });
+    } else {
+      response = await q;
+      console.log(response);
+    }
   } catch (err) {
     // console.log(err);
     handleServerError(err);
   }
 
-  return response.data;
+  return response;
 };
 
 const handleGraphQLError = (err) => {

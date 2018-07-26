@@ -24,7 +24,7 @@ class GraphqurlCommand extends Command {
     }
 
     cli.action.start(`Executing on ${flags.endpoint}`);
-    let result = await Query(flags.endpoint, headers, queryString, variables, flags.name);
+      let result = await Query(this, flags.endpoint, headers, queryString, variables, flags.name);
     cli.action.stop();
     this.log(JSON.stringify(result, null, 2));
   }
