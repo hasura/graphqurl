@@ -1,0 +1,22 @@
+environment:
+  nodejs_version: "9"
+cache:
+  - '%AppData%\npm-cache -> appveyor.yml'
+  - node_modules -> package-lock.json
+
+install:
+  - ps: Install-Product node $env:nodejs_version x64
+  - npm install
+test_script:
+  - .\bin\run --version
+  - .\bin\run --help
+  - npm test
+after_test:
+  - .\node_modules\.bin\nyc report --reporter text-lcov > coverage.lcov
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh
+
+build: off
+

@@ -1,0 +1,48 @@
+{
+  "name": "graphqurl",
+  "description": "curl for graphql",
+  "version": "0.0.1",
+  "author": "Shahidh @shahidhk",
+  "bin": {
+    "gq": "./bin/run"
+  },
+  "bugs": "https://github.com/hasura/graphqurl/issues",
+  "dependencies": {
+    "@oclif/command": "^1.4.35",
+    "@oclif/config": "^1.6.33",
+    "@oclif/plugin-help": "^2.0.5",
+    "apollo-cache-inmemory": "^1.2.6",
+    "apollo-client": "^2.3.7",
+    "apollo-link-http": "^1.5.4",
+    "cli-ux": "^4.7.3",
+    "esm": "^3.0.72",
+    "graphql": "^0.13.2",
+    "graphql-tag": "^2.9.2",
+    "node-fetch": "^2.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-oclif": "^1.5.1"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/src"
+  ],
+  "homepage": "https://github.com/hasura/graphqurl",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "src/index.js",
+  "oclif": {
+    "bin": "gq"
+  },
+  "repository": "hasura/graphqurl",
+  "scripts": {
+    "posttest": "eslint .",
+    "test": "echo NO TESTS"
+  }
+}
