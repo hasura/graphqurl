@@ -6,7 +6,7 @@ const gql = require('graphql-tag');
 const {cli} = require('cli-ux');
 const {CLIError} = require('@oclif/errors');
 
-const Query = async function (endpoint, headers, query, variables) {
+const Query = async function (endpoint, headers, query, variables, name) {
   const client = new ApolloClient({
     link: new HttpLink({ uri: endpoint, fetch: fetch }),
     cache: new InMemoryCache({ addTypename: false })
@@ -16,10 +16,30 @@ const Query = async function (endpoint, headers, query, variables) {
   try {
     input = gql`${query}`;
     if (input.definitions && input.definitions.length > 0) {
-      // FIXME: only takes the first definition
+      if (name) {
+        if (input.definitions.length > 1) {
+          let found = false;
+          for (let d of input.definitions) {
+            if (d.name.value == name) {
+              input = {kind: 'Document', definitions: [d]};
+              queryType = d.operation;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            throw new CLIError(`query with name '${name}' not found in input`);
+          }
+        } else {
+          if (input.definitions[0].name.value !== name) {
+            throw new CLIError(`query with name '${name}' not found in input`);
+          }
+        }
+      }
       queryType = input.definitions[0].operation;
     }
   } catch(err) {
+    // console.log(err);
     handleGraphQLError(err);
   }
 
@@ -52,19 +72,7 @@ const Query = async function (endpoint, headers, query, variables) {
     response = await q;
   } catch (err) {
     // console.log(err);
-    if (err.networkError && err.networkError.statusCode == 400) {
-      if (err.networkError.result && err.networkError.result.errors) {
-        let errorMessages = [];
-        for (e of err.networkError.result.errors) {
-          errorMessages.push(`[${e.code}] at [${e.path}]: ${e.error}`);
-        }
-        throw new CLIError(errorMessages.join('\n'));
-      } else {
-        throw new CLIError(err.message);
-      }
-    } else {
-      throw err;
-    }
+    handleServerError(err);
   }
 
   return response.data;
@@ -85,6 +93,22 @@ const handleGraphQLError = (err) => {
     throw err;
   }
   throw err;
+};
+
+const handleServerError = (err) => {
+  if (err.networkError && err.networkError.statusCode) {
+    if (err.networkError.result && err.networkError.result.errors) {
+      let errorMessages = [];
+      for (e of err.networkError.result.errors) {
+        errorMessages.push(`[${e.code}] at [${e.path}]: ${e.error}`);
+      }
+      throw new CLIError(errorMessages.join('\n'));
+    } else {
+      throw new CLIError(err.message);
+    }
+  } else {
+    throw err;
+  }
 };
 
 module.exports = Query;
