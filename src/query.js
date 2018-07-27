@@ -8,9 +8,9 @@ const fetch = require('node-fetch');
 const { InMemoryCache } = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
 const { cli } = require('cli-ux');
-const { CLIError } = require('@oclif/errors');
 
-const Query = async function (ctx, endpoint, headers, query, variables, name) {
+const Query = async function (options, successCb, errorCb) {
+  const { query, endpoint, headers, variables, name } = options;
   const client = new ApolloClient({
     link: new HttpLink({ uri: endpoint, fetch: fetch }),
     cache: new InMemoryCache({ addTypename: false })
@@ -32,11 +32,21 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
             }
           }
           if (!found) {
-            throw new CLIError(`query with name '${name}' not found in input`);
+            errorCb(
+              (`query with name '${name}' not found in input`),
+              null,
+              input
+            );
+            return;
           }
         } else {
           if (input.definitions[0].name.value !== name) {
-            throw new CLIError(`query with name '${name}' not found in input`);
+            errorCb(
+              (`query with name '${name}' not found in input`),
+              null,
+              input
+            );
+            return;
           }
         }
       }
@@ -44,15 +54,13 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
     }
   } catch(err) {
     // console.log(err);
-    handleGraphQLError(err);
+    errorCb(
+      err,
+      null,
+      input
+    );
   }
   let q;
-  cli.action.start(
-    queryType === 'subscription' ?
-      `Connecting to ${endpoint}` :
-      `Executing on ${endpoint}`
-  );
-
   try {
     if (queryType == 'query') {
       q = client.query({
@@ -71,58 +79,35 @@ const Query = async function (ctx, endpoint, headers, query, variables, name) {
         }
       });
     } else if (queryType == 'subscription') {
-      let firstEvent = true;
-      q = makeObservable(input, variables, endpoint, headers).subscribe(
-        (event) => {
-          if (firstEvent) {
-            firstEvent = false;
-            cli.action.stop('successful');
-          } else {
-            cli.action.stop('received');
-          }
-          ctx.log(JSON.stringify(event, null,  2));
-          cli.action.start('Waiting for events');
-        },
-        (subError) => {
-          cli.action.stop('error');
-          const { code, path, error } = subError.originalError;
-          throw new CLIError(`[${code}] at [${path}]: ${error}`);
-        }
-      );
-      setTimeout(() => {
-        if (firstEvent) {
-          ctx.log('This is taking longer than expected.');
-          setTimeout(() => {
-            if (firstEvent) {
-              cli.action.stop('timeout');
-              throw new CLIError('Failed to connect. Please try again');
-            }
-          }, 7500);
-        }
-      }, 7500);
+      q = makeObservable(input, variables, endpoint, headers, errorCb);
     }
   } catch (err) {
     // console.log(err);
-    handleGraphQLError(err);
+    errorCb(err, queryType, input);
   }
-
   let response;
   try {
     if (queryType === 'subscription') {
-      response = null;
+      response = q.subscribe(
+        (event) => {
+          successCb(event, 'subscription', input);
+        },
+        (error) => {
+          errorCb(error, 'subscription', input);
+        }
+      );
     } else {
       response = await q;
+      successCb(response, queryType, input);
     }
   } catch (err) {
-    // console.log(err);
-    handleServerError(err);
+    errorCb(err, queryType, input);
   }
-  return response;
 };
 
-const makeObservable = (query, variables, endpoint, headers) => {
+const makeObservable = (query, variables, endpoint, headers, errorCb) => {
   return execute(
-    mkWsLink(endpoint, headers),
+    mkWsLink(endpoint, headers, query, errorCb),
     {
       query,
       variables
@@ -130,50 +115,29 @@ const makeObservable = (query, variables, endpoint, headers) => {
   );
 };
 
-const mkWsLink = function(uri, headers) {
+
+const mkWsLink = function(uri, headers, query, errorCb) {
   return new WebSocketLink(new SubscriptionClient(
     uri,
     {
       reconnect: true,
       connectionParams: {
         headers
+      },
+      connectionCallback: (error) => {
+        if (error) {
+          errorCb(
+            error,
+            'subscription',
+            query
+          );
+        }
       }
     },
     ws
   ));
 };
 
-const handleGraphQLError = (err) => {
-  if (err.message) {
-    let errorMessage = err.message;
-    if (err.locations) {
-      let locs = [];
-      for (l of err.locations) {
-        locs.push(`line: ${l.line}, column: ${l.column}`);
-      }
-      errorMessage += `\n${locs.join(',')}`;
-    }
-    throw new CLIError(errorMessage);
-  } else {
-    throw err;
-  }
-  throw err;
-};
 
-const handleServerError = (err) => {
-  if (err.networkError && err.networkError.statusCode) {
-    if (err.networkError.result && err.networkError.result.errors) {
-      let errorMessages = [];
-      for (e of err.networkError.result.errors) {
-        errorMessages.push(`[${e.code}] at [${e.path}]: ${e.error}`);
-      }
-      throw new CLIError(errorMessages.join('\n'));
-    } else {
-      throw new CLIError(err.message);
-    }
-  } else {
-    throw err;
-  }
-};
 
 module.exports = Query;
