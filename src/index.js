@@ -3,6 +3,7 @@ const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
 const fs = require('fs');
 const util = require('util');
+const { querySuccessCb, queryErrorCb } = require('./callbacks.js');
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -22,11 +23,20 @@ class GraphqurlCommand extends Command {
     if (queryString == null) {
       this.error('pass a query as an argument or as a file (--queryFile)');
     }
-
-    cli.action.start(`Executing on ${flags.endpoint}`);
-    let result = await Query(flags.endpoint, headers, queryString, variables, flags.name);
-    cli.action.stop();
-    this.log(JSON.stringify(result, null, 2));
+    const queryOptions = {
+      query: queryString,
+      endpoint: flags.endpoint,
+      headers,
+      variables,
+      name: flags.name
+    };
+    const successCallback = (response, queryType, parsedQuery) => {
+      querySuccessCb(this, response, queryType, parsedQuery, flags.endpoint);
+    };
+    const errorCallback = (error, queryType, parsedQuery) => {
+      queryErrorCb(this, error, queryType, parsedQuery);
+    };
+    await Query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {
