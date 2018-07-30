@@ -1,15 +1,11 @@
 const { HttpLink } = require('apollo-link-http');
 const { ApolloClient } = require('apollo-client');
-const { execute } = require('apollo-link');
-const { SubscriptionClient } = require('subscriptions-transport-ws');
-const { WebSocketLink } = require('apollo-link-ws');
-const ws = require('ws');
 const fetch = require('node-fetch');
 const { InMemoryCache } = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
-const { cli } = require('cli-ux');
+const { makeWsLink, makeObservable } = require('./utils');
 
-const Query = async function (options, successCb, errorCb) {
+const query = async function (options, successCb, errorCb) {
   const { query, endpoint, headers, variables, name } = options;
   const client = new ApolloClient({
     link: new HttpLink({ uri: endpoint, fetch: fetch }),
@@ -32,6 +28,9 @@ const Query = async function (options, successCb, errorCb) {
             }
           }
           if (!found) {
+            if (!errorCb) {
+              throw (`query with name '${name}' not found in input`);
+            }
             errorCb(
               (`query with name '${name}' not found in input`),
               null,
@@ -41,8 +40,11 @@ const Query = async function (options, successCb, errorCb) {
           }
         } else {
           if (input.definitions[0].name.value !== name) {
+            if (!errorCb) {
+              throw (`query with name '${name}' not found in input`);
+            }
             errorCb(
-              (`query with name '${name}' not found in input`),
+              `query with name '${name}' not found in input`,
               null,
               input
             );
@@ -53,7 +55,9 @@ const Query = async function (options, successCb, errorCb) {
       queryType = input.definitions[0].operation;
     }
   } catch(err) {
-    // console.log(err);
+    if (!errorCb) {
+      throw err;
+    }
     errorCb(
       err,
       null,
@@ -83,61 +87,44 @@ const Query = async function (options, successCb, errorCb) {
     }
   } catch (err) {
     // console.log(err);
+    if (!errorCb) {
+      throw err;
+    }
     errorCb(err, queryType, input);
   }
   let response;
   try {
     if (queryType === 'subscription') {
+      if (!successCb) {
+        return q;
+      }
       response = q.subscribe(
         (event) => {
           successCb(event, 'subscription', input);
         },
         (error) => {
+          if (!errorCb) {
+            console.error(error);
+            return;
+          }
           errorCb(error, 'subscription', input);
         }
       );
     } else {
+      if (!successCb) {
+        response = await q;
+        return response;
+      }
       response = await q;
       successCb(response, queryType, input);
     }
   } catch (err) {
+    if (!errorCb) {
+      throw err;
+    }
     errorCb(err, queryType, input);
   }
+  return;
 };
 
-const makeObservable = (query, variables, endpoint, headers, errorCb) => {
-  return execute(
-    mkWsLink(endpoint, headers, query, errorCb),
-    {
-      query,
-      variables
-    }
-  );
-};
-
-
-const mkWsLink = function(uri, headers, query, errorCb) {
-  return new WebSocketLink(new SubscriptionClient(
-    uri,
-    {
-      reconnect: true,
-      connectionParams: {
-        headers
-      },
-      connectionCallback: (error) => {
-        if (error) {
-          errorCb(
-            error,
-            'subscription',
-            query
-          );
-        }
-      }
-    },
-    ws
-  ));
-};
-
-
-
-module.exports = Query;
+module.exports = query;

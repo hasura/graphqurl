@@ -14,6 +14,7 @@ const querySuccessCb = (ctx, response, queryType, parsedQuery, endpoint) => {
 };
 
 const queryErrorCb = (ctx, queryError, queryType, parsedQuery, endpoint) => {
+  cli.action.stop('error');
   if (!queryType) {
     handleGraphQLError(queryError);
   } else if (queryType == 'subscription') {
