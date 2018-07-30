@@ -14,11 +14,14 @@
     "apollo-cache-inmemory": "^1.2.6",
     "apollo-client": "^2.3.7",
     "apollo-link-http": "^1.5.4",
+    "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
     "esm": "^3.0.72",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
-    "node-fetch": "^2.2.0"
+    "node-fetch": "^2.2.0",
+    "subscriptions-transport-ws": "^0.9.13",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "eslint": "^4.19.1",
