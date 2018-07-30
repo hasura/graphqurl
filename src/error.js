@@ -34,7 +34,8 @@ const handleServerError = (err) => {
 
 const throwError = (err) => {
   console.log("Error: ", err);
-}
+  process.exit(1);
+};
 
 module.exports = {
   handleGraphQLError,
