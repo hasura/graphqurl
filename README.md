@@ -25,7 +25,7 @@ $ npm install -g graphqurl
 
 ## Node Library
 
-```
+```bash
 $ npm install --save graphqurl
 ```
 
@@ -36,7 +36,7 @@ $ npm install --save graphqurl
 
 ### Example
 
-```
+```bash
 gq \
      --endpoint https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
@@ -58,10 +58,10 @@ $ gq [QUERY]
 
 #### Options
 
-- **-H, --header=header**: request header
+- **-H, --header="key:value"**: request header
 - **-e, --endpoint=endpoint**: (required) graphql endpoint to run the query
 - **-h, --help**: show CLI help
-- **-v, --variable=variable**: variables used in the query
+- **-v, --variable="key=value"**: variables used in the query
 - **--queryFile=/path/to/queryfile**: file to read the query from
 - **--variablesFile=/path/to/variablefile**: file to read the query variables from
 - **--version**: show CLI version
@@ -179,7 +179,7 @@ query(
 
 Query with query variables:
 
-```
+```js
 const query = require('graphqurl');
 
 query(
@@ -209,7 +209,7 @@ query(
 
 #### Mutations
 
-```
+```js
 const query = require('graphqurl');
 
 query(
@@ -303,7 +303,7 @@ query(
 
 Generic example:
 
-```
+```bash
 gq \
      --endpoint https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
@@ -315,7 +315,7 @@ gq \
 
 Reading the query and variables from a file:
 
-```
+```bash
 gq \
      --endpoint https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
