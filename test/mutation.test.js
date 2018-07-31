@@ -1,6 +1,6 @@
-const query = require('..');
-const hgeUrl = process.env.GRAPHQL_ENGINE_URL || 'http://localhost:8080';
-const accessKey = process.env.X_HASURA_ACCESS_KEY || '12345';
+const query = require('..')
+const hgeUrl = process.env.GRAPHQL_ENGINE_URL || 'http://localhost:8080'
+const accessKey = process.env.X_HASURA_ACCESS_KEY || '12345'
 
 const testMutationPromise = async () => {
   const mutationOpts = {
@@ -11,29 +11,29 @@ const testMutationPromise = async () => {
       }
     }`,
     variables: {
-      "id": 1,
-      "text": "Bob"
+      id: 1,
+      text: 'Bob',
     },
     headers: {
-      'x-hasura-access-key': accessKey
-    }
-  };
-  let response;
+      'x-hasura-access-key': accessKey,
+    },
+  }
+  let response
   try {
-    response = await query(mutationOpts);
-    if (response.data.insert_graphqurl_test.affected_rows !== 1) {
-      console.log('Failed: Mutation with promise');
-      console.log(JSON.stringify(response, null, 2));
-      process.exit('1');
+    response = await query(mutationOpts)
+    if (response.data.insert_graphqurl_test.affected_rows === 1) {
+      console.log('Passed: Mutation with promise')
     } else {
-      console.log('Passed: Mutation with promise');
+      console.log('Failed: Mutation with promise')
+      console.log(JSON.stringify(response, null, 2))
+      process.exit('1')
     }
   } catch (e) {
-    console.log('Failed: Mutation with promise');
-    console.error(e);
-    process.exit(1);
+    console.log('Failed: Mutation with promise')
+    console.error(e)
+    process.exit(1)
   }
-};
+}
 
 const testMutationCallback = async () => {
   const mutationOpts = {
@@ -44,37 +44,38 @@ const testMutationCallback = async () => {
       }
     }`,
     variables: {
-      "id": 2,
-      "text": "Alice"
+      id: 2,
+      text: 'Alice',
     },
     headers: {
-      'x-hasura-access-key': accessKey
-    }
-  };
-  let affected_rows;
-  let response;
+      'x-hasura-access-key': accessKey,
+    },
+  }
+  let affectedRows
   await query(
     mutationOpts,
-    resp => { affected_rows = resp.data.insert_graphqurl_test.affected_rows; },
+    resp => {
+      affectedRows = resp.data.insert_graphqurl_test.affected_rows
+    },
     error => {
-      console.log('Failed: Mutation with callback');
-      console.log(error);
-      process.exit(1);
+      console.log('Failed: Mutation with callback')
+      console.log(error)
+      process.exit(1)
     }
-  );
+  )
   setTimeout(
     () => {
-      if (affected_rows) {
-        console.log('Passed: Mutation with callback');
+      if (affectedRows === 1) {
+        console.log('Passed: Mutation with callback')
       } else {
-        console.log('Failed: Mutation with callback');
+        console.log('Failed: Mutation with callback')
       }
     },
     5000
-  );
-};
+  )
+}
 
 module.exports = {
   testMutationPromise,
-  testMutationCallback
-};
+  testMutationCallback,
+}
