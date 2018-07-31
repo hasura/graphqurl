@@ -151,7 +151,7 @@ query(
 
 ### API
 
-#### query(options, successCallback, errorCallback)**
+#### query(options, successCallback, errorCallback)
 
 - **options**: [Object, *required*] GraphQL query options with the following properties:
   - endpoint: [String, *required*] GraphQL endpoint
