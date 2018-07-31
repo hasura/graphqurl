@@ -13,6 +13,7 @@
     "@oclif/plugin-help": "^2.0.5",
     "apollo-cache-inmemory": "^1.2.6",
     "apollo-client": "^2.3.7",
+    "apollo-link": "^1.2.2",
     "apollo-link-http": "^1.5.4",
     "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
@@ -24,6 +25,7 @@
     "ws": "^6.0.0"
   },
   "devDependencies": {
+    "apollo-server": "^2.0.0",
     "eslint": "^4.19.1",
     "eslint-config-oclif": "^1.5.1"
   },

@@ -1,34 +1,32 @@
-const {cli} = require('cli-ux');
-const { handleGraphQLError, handleServerError } = require('./error.js');
+const {cli} = require('cli-ux')
+const {handleGraphQLError, handleServerError} = require('./error.js')
 
-const querySuccessCb = (ctx, response, queryType, parsedQuery, endpoint) => {
+const querySuccessCb = (ctx, response, queryType) => {
   if (queryType === 'subscription') {
-    cli.action.stop('event received');
-    ctx.log(JSON.stringify(response.data, null, 2));
-    cli.action.start('Waiting');
+    cli.action.stop('event received')
+    ctx.log(JSON.stringify(response.data, null, 2))
+    cli.action.start('Waiting')
   } else {
-    cli.action.stop('done');
-    ctx.log(JSON.stringify(response.data, null, 2));
+    cli.action.stop('done')
+    ctx.log(JSON.stringify(response.data, null, 2))
   }
-  return;
-};
+}
 
-const queryErrorCb = (ctx, queryError, queryType, parsedQuery, endpoint) => {
-  cli.action.stop('error');
+const queryErrorCb = (ctx, queryError, queryType) => {
+  cli.action.stop('error')
   if (!queryType) {
-    handleGraphQLError(queryError);
-  } else if (queryType == 'subscription') {
+    handleGraphQLError(queryError)
+  } else if (queryType === 'subscription') {
     if (queryError.originalError) {
-      const { code, path, error } = queryError.originalError;
-      handleServerError(`[${code}] at [${path}]: ${error}`);
+      const {code, path, error} = queryError.originalError
+      handleServerError(`[${code}] at [${path}]: ${error}`)
     }
   } else {
-    handleServerError(queryError);
+    handleServerError(queryError)
   }
-  return;
-};
+}
 
 module.exports = {
   querySuccessCb,
-  queryErrorCb
-};
+  queryErrorCb,
+}

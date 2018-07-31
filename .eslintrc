@@ -1,3 +1,13 @@
 {
-  "extends": "oclif"
+  "extends": "oclif",
+  "rules": {
+    "max-params": "off",
+    "no-console": "off",
+    "max-depth": "off",
+    "one-var": "off",
+    "complexity": "off",
+    "unicorn/no-process-exit": "off",
+    "no-process-exit": "off",
+    "no-throw-literal": "off"
+  }
 }
