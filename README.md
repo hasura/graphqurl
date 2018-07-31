@@ -71,25 +71,6 @@ $ gq [QUERY]
 
 ### Example
 
-#### Using Promises:
-
-For queries and mutations,
-
-```js
-const query = require('graphqurl');
-
-query(
-  {
-    query: 'query { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    }
-  }
-).then((response) => console.log(response))
- .catch((error) => console.error(error));
-```
-
 #### Using callbacks:
 
 ```js
@@ -121,6 +102,53 @@ query(
 
 ```
 
+#### Using Promises:
+
+For queries and mutations,
+
+```js
+const query = require('graphqurl');
+
+query(
+  {
+    query: 'query { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    }
+  }
+).then((response) => console.log(response))
+ .catch((error) => console.error(error));
+```
+
+For subscriptions,
+
+```js
+const query = require('graphqurl');
+
+query(
+  {
+    query: 'subscription { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    }
+  }
+).then((observable) => {
+  observable.subscribe(
+    (event) => {
+      console.log('Event received: ', event);
+      // handle event
+    },
+    (error) => {
+      console.log('Error: ', error);
+      // handle error
+    }
+  )
+})
+ .catch((error) => console.error(error));
+```
+
 ### API
 
 #### query(options, successCallback, errorCallback)**
@@ -140,7 +168,7 @@ query(
   - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subcription`]
   - parsedQuery: [Object] The query parsed into a GraphQL document
 - **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
-  - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example]() to see how to subscribe to observables.
+  - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example](#subscriptions) to see how to subscribe to observables.
   
   
 ## More Examples
@@ -208,7 +236,43 @@ query(
 
 #### Subscriptions
 
-Using callbacks
+Using promises,
+
+```js
+const query = require('graphqurl');
+
+const eventCallback = (event) => {
+  console.log('Event received:', event);
+  // handle event
+};
+
+const errorCallback = (error) => {
+  console.log('Error:', error)
+};
+
+query(
+  {
+    query: 'subscription { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
+    }
+  },
+).then((observable) => {
+  observable.subscribe(
+    (event) => {
+      console.log('Event received', event);
+      // handle event
+    },
+    (error) => {
+      console.log('Error', error);
+      // handle error
+    }
+  )
+}).catch(errorCallback);
+```
+
+Lets do the above subscription using callbacks,
 
 ```js
 const query = require('graphqurl');
@@ -233,33 +297,6 @@ query(
   eventCallback,
   errorCallback
 );
-```
-
-Lets do the above example using a promise:
-
-```js
-const query = require('graphqurl');
-
-const eventCallback = (event) => {
-  console.log('Event received:', event);
-  // handle event
-};
-
-const errorCallback = (error) => {
-  console.log('Error:', error)
-};
-
-query(
-  {
-    query: 'subscription { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
-    }
-  },
-).then((observable) => {
-  observable.subscribe(eventCallback, errorCallback)
-}).catch(errorCallback);
 ```
 
 ## CLI tool
