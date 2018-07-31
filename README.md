@@ -28,21 +28,66 @@ $ npm install -g graphqurl
 $ npm install --save graphqurl
 ```
 
+
 ## Usage
 
-### As a CLI Tool
+### CLI Tool
 
-```bash
+#### Example
+
+```
 gq \
-  --endpoint https://my-graphql-endpoint/graphql \
-  -H 'Authorization: token <token>'
-  -H 'X-Another-Header: another-header-value'
-  'query { table { column } }'
+     --endpoint https://my-graphql-endpoint/graphql \
+     -H 'Authorization: token <token>' \
+     -H 'X-Another-Header: another-header-value' \
+     -v 'variable1=value1' \
+     -v 'variable2=value2' \
+     'query { table { column } }'
 ```
 
-### As a Node Library
+#### Command
 
-#### Using callbacks
+```bash
+$ gq [QUERY]
+```
+
+#### Args
+
+* **QUERY**: graphql query as a string
+
+#### Options
+
+- **-H, --header=header**: request header
+- **-e, --endpoint=endpoint**: (required) graphql endpoint to run the query
+- **-h, --help**: show CLI help
+- **-v, --variable=variable**: variables used in the query
+- **--queryFile=/path/to/queryfile**: file to read the query from
+- **--variablesFile=/path/to/variablefile**: file to read the query variables from
+- **--version**: show CLI version
+
+
+### Node Library
+
+#### Example
+
+Using Promises:
+
+```js
+const query = require('graphqurl');
+
+query(
+  {
+    query: 'query { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    }
+  }
+).then((response) => console.log(response))
+ .catch((error) => console.error(error));
+```
+
+Using callbacks:
 
 ```js
 const query = require('graphqurl');
@@ -73,64 +118,9 @@ query(
 
 ```
 
-#### Using Promises
+#### API
 
-```
-const query = require('graphqurl');
-
-query(
-  {
-    query: 'query { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    }
-  }
-).then((response) => console.log(response))
- .catch((error) => console.error(error));
-```
-
-## API
-
-### CLI Tool
-
-#### Command
-
-```bash
-$ gq [QUERY]
-```
-
-#### Args
-
-* **QUERY**: graphql query as a string
-
-#### Options
-
-- **-H, --header=header**: request header
-- **-e, --endpoint=endpoint**: (required) graphql endpoint to run the query
-- **-h, --help**: show CLI help
-- **-v, --variable=variable**: variables used in the query
-- **--queryFile=/path/to/queryfile**: file to read the query from
-- **--variablesFile=/path/to/variablefile**: file to read the query variables from
-- **--version**: show CLI version
-
-#### Example
-
-```
-gq \
-     --endpoint https://my-graphql-endpoint/graphql \
-     -H 'Authorization: token <token>' \
-     -H 'X-Another-Header: another-header-value' \
-     -v 'variable1=value1' \
-     -v 'variable2=value2' \
-     'query { table { column } }'
-```
-
-### Node Library
-
-#### Function
-
-##### query(options, successCallback, errorCallback)
+**query(options, successCallback, errorCallback)**
 
 - **options**: [Object, *required*] GraphQL query options with the following properties:
   - endpoint: [String, *required*] GraphQL endpoint
