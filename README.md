@@ -1,4 +1,5 @@
-# graphqurl
+graphqurl
+===========
 
 curl graphql
 
@@ -14,26 +15,26 @@ curl graphql
 
 <!-- toc -->
 
-## Installation
+# Installation
 
-### CLI Tool
+## CLI Tool
 
 ```bash
 $ npm install -g graphqurl
 ```
 
-### Node Library
+## Node Library
 
 ```
 $ npm install --save graphqurl
 ```
 
 
-## Usage
+# Usage
 
-### CLI Tool
+## CLI Tool
 
-#### Example
+### Example
 
 ```
 gq \
@@ -45,7 +46,7 @@ gq \
      'query { table { column } }'
 ```
 
-#### Command
+### Command
 
 ```bash
 $ gq [QUERY]
@@ -66,11 +67,13 @@ $ gq [QUERY]
 - **--version**: show CLI version
 
 
-### Node Library
+## Node Library
 
-#### Example
+### Example
 
-Using Promises:
+#### Using Promises:
+
+For queries and mutations,
 
 ```js
 const query = require('graphqurl');
@@ -87,7 +90,7 @@ query(
  .catch((error) => console.error(error));
 ```
 
-Using callbacks:
+#### Using callbacks:
 
 ```js
 const query = require('graphqurl');
@@ -118,9 +121,9 @@ query(
 
 ```
 
-#### API
+### API
 
-**query(options, successCallback, errorCallback)**
+#### query(options, successCallback, errorCallback)**
 
 - **options**: [Object, *required*] GraphQL query options with the following properties:
   - endpoint: [String, *required*] GraphQL endpoint
@@ -137,4 +140,149 @@ query(
   - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subcription`]
   - parsedQuery: [Object] The query parsed into a GraphQL document
 - **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
+  - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example]() to see how to subscribe to observables.
+  
+  
+## More Examples
 
+### Node Library
+
+#### Queries
+
+Query with query variables:
+
+```
+const query = require('graphqurl');
+
+query(
+  {
+    query: `
+      mutation ($id_insert_input: String!, $column_insert_input: String!) {
+        insert_to_table (
+          id: $id_insert_input,
+          column: $column_insert_input
+        ) {
+          affected_rows
+        }
+      }
+    `,
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    },
+    variables: {
+      id_insert_input: 'id_ak23sdfkjk2',
+      column_insert_input: 'Bob'
+    }
+  }
+).then((response) => console.log(response))
+ .catch((error) => console.error(error));
+```
+
+#### Mutations
+
+```
+const query = require('graphqurl');
+
+query(
+  {
+    query: `
+      query ($name: String) {
+        table(where: { column: $name }) {
+          id
+          column
+        }
+      }
+    `,
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    },
+    variables: {
+      name: 'Alice'
+    }
+  }
+).then((response) => console.log(response))
+ .catch((error) => console.error(error));
+```
+
+#### Subscriptions
+
+Using callbacks
+
+```js
+const query = require('graphqurl');
+
+function eventCallback(event) {
+  console.log('Event received:', event);
+  // handle event
+}
+
+function errorCallback(error) {
+  console.log('Error:', error)
+}
+
+query(
+  {
+    query: 'subscription { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
+    }
+  },
+  eventCallback,
+  errorCallback
+);
+```
+
+Lets do the above example using a promise:
+
+```js
+const query = require('graphqurl');
+
+const eventCallback = (event) => {
+  console.log('Event received:', event);
+  // handle event
+};
+
+const errorCallback = (error) => {
+  console.log('Error:', error)
+};
+
+query(
+  {
+    query: 'subscription { table { column } }',
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
+    }
+  },
+).then((observable) => {
+  observable.subscribe(eventCallback, errorCallback)
+}).catch(errorCallback);
+```
+
+## CLI tool
+
+Generic example:
+
+```
+gq \
+     --endpoint https://my-graphql-endpoint/graphql \
+     -H 'Authorization: token <token>' \
+     -H 'X-Another-Header: another-header-value' \
+     -v 'variable1=value1' \
+     -v 'variable2=value2' \
+     'query { table { column } }'
+```
+
+Reading the query and variables from a file:
+
+```
+gq \
+     --endpoint https://my-graphql-endpoint/graphql \
+     -H 'Authorization: token <token>' \
+     -H 'X-Another-Header: another-header-value' \
+     --variableFile='./queryVariables.json' \
+     --queryFile='./variablesFile.gql'
+```
