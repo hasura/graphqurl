@@ -48,7 +48,6 @@
   },
   "repository": "hasura/graphqurl",
   "scripts": {
-    "posttest": "eslint .",
-    "test": "echo NO TESTS"
+    "test": "echo NO TESTS yet!"
   }
 }
