@@ -1,6 +1,6 @@
 {
   "name": "graphqurl",
-  "description": "curl for graphql",
+  "description": "cURL for GraphQL - CLI and JS library for making GraphQL queries",
   "version": "0.0.4",
   "author": "Hasura",
   "bin": {
@@ -41,7 +41,7 @@
   "keywords": [
     "oclif"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "main": "src/query.js",
   "oclif": {
     "bin": "gq"
