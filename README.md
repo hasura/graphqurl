@@ -1,7 +1,7 @@
 graphqurl
 ===========
 
-curl graphql
+cURL for GraphQL
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
@@ -17,7 +17,7 @@ curl graphql
 
 # Installation
 
-## CLI Tool
+## CLI
 
 ```bash
 $ npm install -g graphqurl
@@ -29,21 +29,56 @@ $ npm install -g graphqurl
 $ npm install --save graphqurl
 ```
 
-
 # Usage
 
-## CLI Tool
+## CLI
 
-### Example
+### Examples
+
+#### Query
 
 ```bash
 gq \
      --endpoint https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
      -H 'X-Another-Header: another-header-value' \
-     -v 'variable1=value1' \
-     -v 'variable2=value2' \
      'query { table { column } }'
+```
+
+#### Auto-complete
+
+GraphQURL can auto-complete queries using schema introspection. Execute the
+command without providing a query string:
+
+```bash
+$ gq -e <endpoint> [-H <header:value>]
+Enter the query, use TAB to auto-complete, Ctrl+Q to execute, Ctrl+C to cancel
+gql>
+```
+
+You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
+`Ctrl+Q` to execute the query.
+
+#### Mutation
+
+Mutations with variables can be executed by providing the variables with `-v`
+flag.
+
+```bash
+gq \
+    -e <endpoint> \ 
+    -v 'name=hasura' \
+    'mutation ($name: String) { table (objects: [{ name: $name }]) }'
+```
+
+#### Subscription
+
+Subscriptions can be executed and the response is streamed on to stdout.
+
+```bash
+gq \
+    -e <endpoint> \ 
+     'subscription { table { column } }'
 ```
 
 ### Command
@@ -58,13 +93,15 @@ $ gq [QUERY]
 
 #### Options
 
-- **-H, --header="key:value"**: request header
-- **-e, --endpoint=endpoint**: (required) graphql endpoint to run the query
-- **-h, --help**: show CLI help
-- **-v, --variable="key=value"**: variables used in the query
-- **--queryFile=/path/to/queryfile**: file to read the query from
-- **--variablesFile=/path/to/variablefile**: file to read the query variables from
-- **--version**: show CLI version
+- ```-H, --header="key:value"```: request header
+- ```-e, --endpoint=endpoint```: (required) graphql endpoint to run the query
+  [can be set using `GRAPHQURL_ENDPOINT` env var also]
+- ```-h, --help```: show CLI help
+- ```-v, --variable="key=value"```: variables used in the query
+- ```-n, --name=name```: name of the graphql definition to execute, use only if there are multiple definitions
+- ```--queryFile=/path/to/queryfile```: file to read the query from
+- ```--variablesFile=/path/to/variablefile```: file to read the query variables from
+- ```--version```: show CLI version
 
 
 ## Node Library
