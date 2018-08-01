@@ -1,7 +1,6 @@
-graphqurl
-===========
+# GraphQURL
 
-cURL for GraphQL
+cURL for GraphQL - CLI and JS library for making GraphQL queries
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
@@ -13,27 +12,23 @@ cURL for GraphQL
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/package.json)
 
-<!-- toc -->
+## Installation
 
-# Installation
-
-## CLI
+### CLI
 
 ```bash
 $ npm install -g graphqurl
 ```
 
-## Node Library
+### Node Library
 
 ```bash
 $ npm install --save graphqurl
 ```
 
-# Usage
+## Usage
 
-## CLI
-
-### Examples
+### CLI
 
 #### Query
 
@@ -104,9 +99,7 @@ $ gq [QUERY]
 - ```--version```: show CLI version
 
 
-## Node Library
-
-### Example
+### Node Library
 
 #### Using callbacks:
 
@@ -207,7 +200,7 @@ query(
 - **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
   - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example](#subscriptions) to see how to subscribe to observables.
 
-# More Examples
+## More Examples
 
 ### Node Library
 
@@ -335,7 +328,7 @@ query(
 );
 ```
 
-## CLI tool
+### CLI tool
 
 Generic example:
 
@@ -357,5 +350,4 @@ gq \
      -H 'Authorization: token <token>' \
      -H 'X-Another-Header: another-header-value' \
      --variableFile='./queryVariables.json' \
-     --queryFile='./variablesFile.gql'
-```
+     --queryFile='./vargraphqurl
