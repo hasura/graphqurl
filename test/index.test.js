@@ -7,6 +7,10 @@ const {
   testQueryPromise,
   testQueryCallback,
 } = require('./query.test.js')
+const {
+  testSubscriptionPromise,
+  testSubscriptionCallback
+} = require('./subscription.test.js')
 const hgeUrl = process.env.GRAPHQL_ENGINE_URL || 'http://localhost:8080'
 const accessKey = process.env.X_HASURA_ACCESS_KEY || '12345'
 
@@ -71,10 +75,22 @@ const deleteTable = async () => {
 const runTests = async () => {
   await createTable()
   await testMutationPromise()
-  await testQueryPromise()
   await testMutationCallback()
+  wait(5000)
+  await testQueryPromise()
   await testQueryCallback()
+  await testSubscriptionPromise()
+  wait(5000)
+  await testSubscriptionCallback()
+  wait(5000)
   await deleteTable()
+}
+
+const wait = (time) => {
+  setTimeout(
+    () => null,
+    time
+  );
 }
 
 try {
