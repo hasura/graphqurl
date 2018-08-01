@@ -11,12 +11,12 @@ test_script:
   - .\bin\run --version
   - .\bin\run --help
   - npm test
-after_test:
-  - .\node_modules\.bin\nyc report --reporter text-lcov > coverage.lcov
-  - ps: |
-      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
-      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-      bash codecov.sh
+#after_test:
+#  - .\node_modules\.bin\nyc report --reporter text-lcov > coverage.lcov
+#  - ps: |
+#      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+#      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+#      bash codecov.sh
 
 build: off
 
