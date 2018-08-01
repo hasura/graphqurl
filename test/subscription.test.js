@@ -19,35 +19,32 @@ const testSubscriptionPromise = async () => {
   }
   let respLength = null
   const observable = await query(subOpts)
-  console.log(observable);
-  console.log(observable.subscribe)
-  observable.subscribe(
-    (event) => {
+  let subscription = observable.subscribe(
+    event => {
       if (event.data && event.data.graphqurl_test) {
-        respLength = event.data.graphqurl_test.length;
-      }
-      else {
+        respLength = event.data.graphqurl_test.length
+      } else {
         console.log('Failed: Subscription with promise')
         console.log(JSON.stringify(event, null, 2))
-        process.exit(1);
+        process.exit(1)
       }
     },
-    (error) => {
+    error => {
       console.log('Failed: Subscription with promise')
-      console.log(JSON.stringify(event, null, 2))
-      process.exit(1);
+      console.log(JSON.stringify(error, null, 2))
+      process.exit(1)
     }
-  );
+  )
   setTimeout(
     () => {
       if (respLength === null || respLength === undefined) {
-        console.log('Failed: Subscription with promise');
-        console.log(respLength);
-        process.exit(1);
+        console.log('Failed: Subscription with promise')
+        console.log('Mutation did not trigger an event', respLength)
+        process.exit(1)
       }
     },
-    5000
-  );
+    10000
+  )
   const mutationResp = await query({
     ...subOpts,
     query: `mutation($id:Int, $text:String) {
@@ -57,20 +54,21 @@ const testSubscriptionPromise = async () => {
     }`,
     variables: {
       id: 3,
-      text: 'Jill'
-    }
-  });
+      text: 'Jill',
+    },
+  })
   if (mutationResp.data.insert_graphqurl_test.affected_rows === 1) {
     setTimeout(
       () => {
         if (respLength === 1) {
+          subscription.unsubscribe()
           console.log('Passed: Subscription with promise')
         } else {
-          console.log('Failed: Subscription with promise');
-          console.log(respLength);
+          console.log('Failed: Subscription with promise')
+          console.log('Mutation did not trigger an event', respLength)
         }
       },
-      5000
+      15000
     )
   }
 }
@@ -95,29 +93,28 @@ const testSubscriptionCallback = async () => {
     subOpts,
     event => {
       if (event.data && event.data.graphqurl_test) {
-        respLength = event.data.graphqurl_test.length;
-      }
-      else {
+        respLength = event.data.graphqurl_test.length
+      } else {
         console.log('Failed: Subscription with callback')
-        console.log(JSON.stringify(event, null, 2));
-        process.exit(1);
+        console.log(JSON.stringify(event, null, 2))
+        process.exit(1)
       }
     },
-    (error) => {
+    error => {
       console.log('Failed: Subscription with callback')
-      console.log(JSON.stringify(error, null, 2));
+      console.log(JSON.stringify(error, null, 2))
       process.exit(1)
     }
   )
   setTimeout(
     () => {
       if (respLength === null || respLength === undefined) {
-        console.log('Failed: Subscription with callback');
-        process.exit(1);
+        console.log('Failed: Subscription with callback')
+        process.exit(1)
       }
     },
-    5000
-  );
+    10000
+  )
   const mutationResp = await query({
     ...subOpts,
     query: `mutation($id:Int, $text:String) {
@@ -127,24 +124,25 @@ const testSubscriptionCallback = async () => {
     }`,
     variables: {
       id: 4,
-      text: 'Jack'
-    }
-  });
+      text: 'Jack',
+    },
+  })
   if (mutationResp.data.insert_graphqurl_test.affected_rows === 1) {
     setTimeout(
       () => {
         if (respLength === 1) {
           console.log('Passed: Subscription with callback')
+          process.exit(0)
         } else {
           console.log('Failed: Subscription with callback')
         }
       },
-      5000
+      15000
     )
   }
 }
 
 module.exports = {
   testSubscriptionCallback,
-  testSubscriptionPromise
+  testSubscriptionPromise,
 }

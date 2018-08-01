@@ -9,7 +9,7 @@ const {
 } = require('./query.test.js')
 const {
   testSubscriptionPromise,
-  testSubscriptionCallback
+  testSubscriptionCallback,
 } = require('./subscription.test.js')
 const hgeUrl = process.env.GRAPHQL_ENGINE_URL || 'http://localhost:8080'
 const accessKey = process.env.X_HASURA_ACCESS_KEY || '12345'
@@ -65,17 +65,9 @@ const runTests = async () => {
   await testSubscriptionCallback()
 }
 
-const wait = (time) => {
-  setTimeout(
-    () => null,
-    time
-  );
-}
-
 try {
   runTests()
 } catch (e) {
   console.log(e)
 }
-
 

@@ -51,6 +51,6 @@
   "scripts": {
     "eslint": "eslint . --fix",
     "posttest": "eslint .",
-    "test": "node test/index.test.js && node test/clearState.test.js"
+    "test": "node test/index.test.js && node test/clearstate.test.js"
   }
 }

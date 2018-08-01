@@ -1,10 +1,10 @@
-const query = require('./query');
-const {Command, flags} = require('@oclif/command');
-const {cli} = require('cli-ux');
-const fs = require('fs');
-const util = require('util');
-const { querySuccessCb, queryErrorCb } = require('./callbacks.js');
-const getQueryFromTerminalUI = require('./ui');
+const query = require('./query')
+const {Command, flags} = require('@oclif/command')
+const {cli} = require('cli-ux')
+const fs = require('fs')
+const util = require('util')
+const {querySuccessCb, queryErrorCb} = require('./callbacks.js')
+const getQueryFromTerminalUI = require('./ui')
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile)
@@ -17,12 +17,12 @@ class GraphqurlCommand extends Command {
     // this.log(`header: ${flags.header}`);
     // this.log(`variable: ${flags.variable}`);
 
-    const headers = this.parseHeaders(flags.header);
-    let queryString = await this.getQueryString(args, flags);
-    const variables = await this.getQueryVariables(args, flags);
+    const headers = this.parseHeaders(flags.header)
+    let queryString = await this.getQueryString(args, flags)
+    const variables = await this.getQueryVariables(args, flags)
 
-    if (queryString == null) {
-      queryString = await getQueryFromTerminalUI(flags.endpoint, headers);
+    if (queryString === null) {
+      queryString = await getQueryFromTerminalUI(flags.endpoint, headers)
       // this.log(queryString);
     }
     const queryOptions = {
@@ -148,4 +148,4 @@ GraphqurlCommand.args = [
   },
 ]
 
-module.exports = GraphqurlCommand;
+module.exports = GraphqurlCommand
