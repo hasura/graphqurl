@@ -8,9 +8,10 @@ const {makeObservable} = require('./utils')
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options
   const client = new ApolloClient({
-    link: new HttpLink({uri: endpoint, fetch: fetch}),
-    cache: new InMemoryCache({addTypename: false}),
-  })
+    link: new HttpLink({ uri: endpoint, fetch: fetch }),
+    // cache: new InMemoryCache({ addTypename: false })
+    cache: new InMemoryCache()
+  });
 
   let input, queryType
   try {
