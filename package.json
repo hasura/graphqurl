@@ -18,9 +18,12 @@
     "cli-ux": "^4.7.3",
     "esm": "^3.0.72",
     "graphql": "^0.13.2",
+    "graphql-language-service-interface": "^1.2.2",
+    "graphql-language-service-utils": "^1.2.2",
     "graphql-tag": "^2.9.2",
     "node-fetch": "^2.2.0",
     "subscriptions-transport-ws": "^0.9.13",
+    "terminal-kit": "^1.19.2",
     "ws": "^6.0.0"
   },
   "devDependencies": {
