@@ -55,35 +55,14 @@ const createTable = async () => {
   }
 }
 
-const deleteTable = async () => {
-  const deleteTableOpts = {
-    method: 'POST',
-    headers: requestHeaders,
-    body: JSON.stringify({
-      type: 'run_sql',
-      args: {
-        sql: 'drop table graphqurl_test',
-      },
-    }),
-  }
-  await fetch(
-    `${hgeUrl}/v1/query`,
-    deleteTableOpts
-  )
-}
-
 const runTests = async () => {
   await createTable()
   await testMutationPromise()
   await testMutationCallback()
-  wait(5000)
   await testQueryPromise()
   await testQueryCallback()
   await testSubscriptionPromise()
-  wait(5000)
   await testSubscriptionCallback()
-  wait(5000)
-  await deleteTable()
 }
 
 const wait = (time) => {
@@ -98,3 +77,5 @@ try {
 } catch (e) {
   console.log(e)
 }
+
+
