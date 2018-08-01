@@ -2,7 +2,7 @@
   "name": "graphqurl",
   "description": "curl for graphql",
   "version": "0.0.4",
-  "author": "Shahidh @shahidhk",
+  "author": "Hasura",
   "bin": {
     "gq": "./bin/run"
   },
