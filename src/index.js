@@ -148,4 +148,3 @@ GraphqurlCommand.args = [
 ];
 
 module.exports = GraphqurlCommand;
-module.exports.query = query;

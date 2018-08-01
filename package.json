@@ -42,7 +42,7 @@
     "oclif"
   ],
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "src/query.js",
   "oclif": {
     "bin": "gq"
   },
