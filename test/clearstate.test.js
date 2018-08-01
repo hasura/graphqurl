@@ -1,6 +1,6 @@
 const fetch = require('node-fetch')
-const hgeUrl = process.env.GRAPHQL_ENGINE_URL || 'http://localhost:8080'
-const accessKey = process.env.X_HASURA_ACCESS_KEY || '12345'
+const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080'
+const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345'
 
 const requestHeaders = {
   'content-type': 'application/json',
