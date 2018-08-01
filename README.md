@@ -206,7 +206,34 @@ query(
 
 #### Queries
 
-Query with query variables:
+Query example with variables
+
+```js
+const query = require('graphqurl');
+
+query(
+  {
+    query: `
+      query ($name: String) {
+        table(where: { column: $name }) {
+          id
+          column
+        }
+      }
+    `,
+    endpoint: 'https://my-graphql-endpoint/graphql',
+    headers: {
+      'x-access-key': 'mysecretxxx',
+    },
+    variables: {
+      name: 'Alice'
+    }
+  }
+).then((response) => console.log(response))
+ .catch((error) => console.error(error));
+```
+
+#### Mutations
 
 ```js
 const query = require('graphqurl');
@@ -230,33 +257,6 @@ query(
     variables: {
       id_insert_input: 'id_ak23sdfkjk2',
       column_insert_input: 'Bob'
-    }
-  }
-).then((response) => console.log(response))
- .catch((error) => console.error(error));
-```
-
-#### Mutations
-
-```js
-const query = require('graphqurl');
-
-query(
-  {
-    query: `
-      query ($name: String) {
-        table(where: { column: $name }) {
-          id
-          column
-        }
-      }
-    `,
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    },
-    variables: {
-      name: 'Alice'
     }
   }
 ).then((response) => console.log(response))
