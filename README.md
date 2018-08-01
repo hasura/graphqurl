@@ -169,9 +169,8 @@ query(
   - parsedQuery: [Object] The query parsed into a GraphQL document
 - **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
   - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example](#subscriptions) to see how to subscribe to observables.
-  
-  
-## More Examples
+
+# More Examples
 
 ### Node Library
 
