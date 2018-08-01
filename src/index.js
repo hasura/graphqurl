@@ -4,6 +4,7 @@ const {cli} = require('cli-ux');
 const fs = require('fs');
 const util = require('util');
 const { querySuccessCb, queryErrorCb } = require('./callbacks.js');
+const getQueryFromTerminalUI = require('./ui');
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -17,11 +18,12 @@ class GraphqurlCommand extends Command {
     // this.log(`variable: ${flags.variable}`);
 
     const headers = this.parseHeaders(flags.header);
-    const queryString = await this.getQueryString(args, flags);
+    let queryString = await this.getQueryString(args, flags);
     const variables = await this.getQueryVariables(args, flags);
 
     if (queryString == null) {
-      this.error('pass a query as an argument or as a file (--queryFile)');
+      queryString = await getQueryFromTerminalUI(flags.endpoint, headers);
+      // this.log(queryString);
     }
     const queryOptions = {
       query: queryString,
