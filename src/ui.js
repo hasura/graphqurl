@@ -4,6 +4,8 @@ const query = require('./query');
 const { getAutocompleteSuggestions } = require('graphql-language-service-interface');
 const { Position } = require('graphql-language-service-utils');
 
+// FIXME: needs js idiomatic refactor
+
 var term = tk.terminal;
 
 let qs = '';
