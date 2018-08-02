@@ -1,10 +1,24 @@
 ---
 version: 2
 jobs:
-  node-latest: &test
+  node-8: &test
     docker:
-      - image: node:latest
+      - image: node:8
+      - image: circleci/postgres:10-alpine
+        environment:
+          POSTGRES_USER: gql_test
+          POSTGRES_DB: gql_test
+      - image: hasura/graphql-engine:latest
+        environment:
+          HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@localhost:5432/gql_test
+          HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
+        command:
+          - graphql-engine
+          - serve
     working_directory: ~/cli
+    environment:
+      GRAPHQURL_TEST_GRAPHQL_ENGINE_URL: http://localhost:8080
+      GRAPHQURL_TEST_X_HASURA_ACCESS_KEY: verysecretaccesskey
     steps:
       - checkout
       - restore_cache: &restore_cache
@@ -17,7 +31,7 @@ jobs:
       - run: ./bin/run --version
       - run: ./bin/run --help
       - run:
-          name: Testing
+          name: Test
           command: npm test
       - save_cache:
           key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
@@ -25,14 +39,13 @@ jobs:
             - ~/cli/node_modules
             - ~/.npm
             - /usr/local/lib/node_modules
-  node-8:
+  node-latest:
     <<: *test
     docker:
-      - image: node:8
+      - image: node:latest
 
 workflows:
   version: 2
   "graphqurl":
     jobs:
-      - node-latest
       - node-8

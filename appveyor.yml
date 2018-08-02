@@ -10,7 +10,7 @@ install:
 test_script:
   - .\bin\run --version
   - .\bin\run --help
-  - npm test
+#  - npm test
 #after_test:
 #  - .\node_modules\.bin\nyc report --reporter text-lcov > coverage.lcov
 #  - ps: |

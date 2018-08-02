@@ -49,8 +49,8 @@
   },
   "repository": "hasura/graphqurl",
   "scripts": {
-    "eslint": "eslint . --fix",
-    "posttest": "npm run eslint",
+    "eslintfix": "eslint . --fix",
+    "posttest": "eslint .",
     "test": "node test/index.test.js && node test/clearstate.test.js"
   }
 }
