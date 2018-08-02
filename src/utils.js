@@ -1,28 +1,17 @@
-const { SubscriptionClient } = require('subscriptions-transport-ws');
-const { WebSocketLink } = require('apollo-link-ws');
+const {SubscriptionClient} = require('subscriptions-transport-ws');
+const {WebSocketLink} = require('apollo-link-ws');
 const ws = require('ws');
-const { execute } = require('apollo-link');
+const {execute} = require('apollo-link');
 
-const makeObservable = (query, variables, endpoint, headers, errorCb) => {
-  return execute(
-    makeWsLink(endpoint, headers, query, errorCb),
-    {
-      query,
-      variables
-    }
-  );
-};
-
-
-const makeWsLink = function(uri, headers, query, errorCb) {
+const makeWsLink = function (uri, headers, query, errorCb) {
   return new WebSocketLink(new SubscriptionClient(
     uri,
     {
       reconnect: true,
       connectionParams: {
-        headers
+        headers,
       },
-      connectionCallback: (error) => {
+      connectionCallback: error => {
         if (error) {
           if (!errorCb) {
             console.error(error);
@@ -34,13 +23,23 @@ const makeWsLink = function(uri, headers, query, errorCb) {
             query
           );
         }
-      }
+      },
     },
     ws
   ));
 };
 
+const makeObservable = (query, variables, endpoint, headers, errorCb) => {
+  return execute(
+    makeWsLink(endpoint, headers, query, errorCb),
+    {
+      query,
+      variables,
+    }
+  );
+};
+
 module.exports = {
   makeWsLink,
-  makeObservable
+  makeObservable,
 };

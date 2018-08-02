@@ -1,11 +1,14 @@
-const { CLIError } = require('@oclif/errors');
+const throwError = err => {
+  console.log('Error: ', err);
+  process.exit(1);
+};
 
-const handleGraphQLError = (err) => {
+const handleGraphQLError = err => {
   if (err.message) {
     let errorMessage = err.message;
     if (err.locations) {
       let locs = [];
-      for (l of err.locations) {
+      for (const l of err.locations) {
         locs.push(`line: ${l.line}, column: ${l.column}`);
       }
       errorMessage += `\n${locs.join(',')}`;
@@ -16,11 +19,11 @@ const handleGraphQLError = (err) => {
   }
 };
 
-const handleServerError = (err) => {
+const handleServerError = err => {
   if (err.networkError && err.networkError.statusCode) {
     if (err.networkError.result && err.networkError.result.errors) {
       let errorMessages = [];
-      for (e of err.networkError.result.errors) {
+      for (const e of err.networkError.result.errors) {
         errorMessages.push(`[${e.code}] at [${e.path}]: ${e.error}`);
       }
       throwError(errorMessages.join('\n'));
@@ -32,12 +35,7 @@ const handleServerError = (err) => {
   }
 };
 
-const throwError = (err) => {
-  console.log("Error: ", err);
-  process.exit(1);
-};
-
 module.exports = {
   handleGraphQLError,
-  handleServerError
+  handleServerError,
 };

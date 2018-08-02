@@ -10,9 +10,11 @@
   "dependencies": {
     "@oclif/command": "^1.4.35",
     "@oclif/config": "^1.6.33",
+    "@oclif/errors": "^1.1.2",
     "@oclif/plugin-help": "^2.0.5",
     "apollo-cache-inmemory": "^1.2.6",
     "apollo-client": "^2.3.7",
+    "apollo-link": "^1.2.2",
     "apollo-link-http": "^1.5.4",
     "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
@@ -48,6 +50,8 @@
   },
   "repository": "hasura/graphqurl",
   "scripts": {
-    "test": "echo NO TESTS yet!"
+    "eslintfix": "eslint . --fix",
+    "posttest": "eslint .",
+    "test": "node test/index.test.js && node test/clearstate.test.js"
   }
 }

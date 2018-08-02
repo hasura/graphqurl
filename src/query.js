@@ -1,16 +1,16 @@
-const { HttpLink } = require('apollo-link-http');
-const { ApolloClient } = require('apollo-client');
+const {HttpLink} = require('apollo-link-http');
+const {ApolloClient} = require('apollo-client');
 const fetch = require('node-fetch');
-const { InMemoryCache } = require('apollo-cache-inmemory');
+const {InMemoryCache} = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
-const { makeWsLink, makeObservable } = require('./utils');
+const {makeObservable} = require('./utils');
 
 const query = async function (options, successCb, errorCb) {
-  const { query, endpoint, headers, variables, name } = options;
+  const {query, endpoint, headers, variables, name} = options;
   const client = new ApolloClient({
-    link: new HttpLink({ uri: endpoint, fetch: fetch }),
+    link: new HttpLink({uri: endpoint, fetch: fetch}),
     // cache: new InMemoryCache({ addTypename: false })
-    cache: new InMemoryCache()
+    cache: new InMemoryCache(),
   });
 
   let input, queryType;
@@ -21,7 +21,7 @@ const query = async function (options, successCb, errorCb) {
         if (input.definitions.length > 1) {
           let found = false;
           for (let d of input.definitions) {
-            if (d.name.value == name) {
+            if (d.name.value === name) {
               input = {kind: 'Document', definitions: [d]};
               queryType = d.operation;
               found = true;
@@ -30,32 +30,38 @@ const query = async function (options, successCb, errorCb) {
           }
           if (!found) {
             if (!errorCb) {
-              throw (`query with name '${name}' not found in input`);
+              throw ({
+                error: `query with name '${name}' not found in input`,
+              });
             }
             errorCb(
-              (`query with name '${name}' not found in input`),
+              {
+                error: `query with name '${name}' not found in input`,
+              },
               null,
               input
             );
             return;
           }
-        } else {
-          if (input.definitions[0].name.value !== name) {
-            if (!errorCb) {
-              throw (`query with name '${name}' not found in input`);
-            }
-            errorCb(
-              `query with name '${name}' not found in input`,
-              null,
-              input
-            );
-            return;
+        } else if (input.definitions[0].name.value !== name) {
+          if (!errorCb) {
+            throw ({
+              error: `query with name '${name}' not found in input`,
+            });
           }
+          errorCb(
+            {
+              error: `query with name '${name}' not found in input`,
+            },
+            null,
+            input
+          );
+          return;
         }
       }
       queryType = input.definitions[0].operation;
     }
-  } catch(err) {
+  } catch (err) {
     if (!errorCb) {
       throw err;
     }
@@ -67,23 +73,23 @@ const query = async function (options, successCb, errorCb) {
   }
   let q;
   try {
-    if (queryType == 'query') {
+    if (queryType === 'query') {
       q = client.query({
         query: input,
         variables,
         context: {
-          headers
-        }
+          headers,
+        },
       });
-    } else if (queryType == 'mutation') {
+    } else if (queryType === 'mutation') {
       q = client.mutate({
         mutation: input,
         variables,
         context: {
-          headers
-        }
+          headers,
+        },
       });
-    } else if (queryType == 'subscription') {
+    } else if (queryType === 'subscription') {
       q = makeObservable(input, variables, endpoint, headers, errorCb);
     }
   } catch (err) {
@@ -100,10 +106,10 @@ const query = async function (options, successCb, errorCb) {
         return q;
       }
       response = q.subscribe(
-        (event) => {
+        event => {
           successCb(event, 'subscription', input);
         },
-        (error) => {
+        error => {
           if (!errorCb) {
             console.error(error);
             return;
@@ -125,7 +131,6 @@ const query = async function (options, successCb, errorCb) {
     }
     errorCb(err, queryType, input);
   }
-  return;
 };
 
 module.exports = query;
