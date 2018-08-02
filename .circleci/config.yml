@@ -13,8 +13,9 @@ jobs:
           HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@localhost:5432/gql_test
           HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
         command:
-          - graphql-engine
-          - serve
+          - sh
+          - -c
+          - "sleep 30; graphql-engine serve"
     working_directory: ~/cli
     environment:
       GRAPHQURL_TEST_GRAPHQL_ENGINE_URL: http://localhost:8080
