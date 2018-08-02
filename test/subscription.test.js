@@ -24,13 +24,13 @@ const testSubscriptionPromise = async () => {
       if (event.data && event.data.graphqurl_test) {
         respLength = event.data.graphqurl_test.length;
       } else {
-        console.log('Failed: Subscription with promise');
+        console.log('✖ Subscription with promise');
         console.log(JSON.stringify(event, null, 2));
         process.exit(1);
       }
     },
     error => {
-      console.log('Failed: Subscription with promise');
+      console.log('✖ Subscription with promise');
       console.log(JSON.stringify(error, null, 2));
       process.exit(1);
     }
@@ -38,7 +38,7 @@ const testSubscriptionPromise = async () => {
   setTimeout(
     () => {
       if (respLength === null || respLength === undefined) {
-        console.log('Failed: Subscription with promise');
+        console.log('✖ Subscription with promise');
         console.log('Mutation did not trigger an event', respLength);
         process.exit(1);
       }
@@ -62,9 +62,9 @@ const testSubscriptionPromise = async () => {
       () => {
         if (respLength === 1) {
           subscription.unsubscribe();
-          console.log('Passed: Subscription with promise');
+          console.log('✔︎ Subscription with promise');
         } else {
-          console.log('Failed: Subscription with promise');
+          console.log('✖ Subscription with promise');
           console.log('Mutation did not trigger an event', respLength);
         }
       },
@@ -95,13 +95,13 @@ const testSubscriptionCallback = async () => {
       if (event.data && event.data.graphqurl_test) {
         respLength = event.data.graphqurl_test.length;
       } else {
-        console.log('Failed: Subscription with callback');
+        console.log('✖ Subscription with callback');
         console.log(JSON.stringify(event, null, 2));
         process.exit(1);
       }
     },
     error => {
-      console.log('Failed: Subscription with callback');
+      console.log('✖ Subscription with callback');
       console.log(JSON.stringify(error, null, 2));
       process.exit(1);
     }
@@ -109,7 +109,7 @@ const testSubscriptionCallback = async () => {
   setTimeout(
     () => {
       if (respLength === null || respLength === undefined) {
-        console.log('Failed: Subscription with callback');
+        console.log('✖ Subscription with callback');
         process.exit(1);
       }
     },
@@ -131,10 +131,10 @@ const testSubscriptionCallback = async () => {
     setTimeout(
       () => {
         if (respLength === 1) {
-          console.log('Passed: Subscription with callback');
+          console.log('✔︎ Subscription with callback');
           process.exit(0);
         } else {
-          console.log('Failed: Subscription with callback');
+          console.log('✖ Subscription with callback');
         }
       },
       15000

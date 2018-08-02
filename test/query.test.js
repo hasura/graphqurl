@@ -21,14 +21,14 @@ const testQueryPromise = async () => {
   try {
     response = await query(queryOpts);
     if (response.data.graphqurl_test.length === 1) {
-      console.log('Passed: Query with promise');
+      console.log('✔︎ Query with promise');
     } else {
-      console.log('Failed: Query with promise');
+      console.log('✖ Query with promise');
       console.log(JSON.stringify(response, null, 2));
       process.exit('1');
     }
   } catch (e) {
-    console.log('Failed: Query with promise');
+    console.log('✖ Query with promise');
     console.error(e);
     process.exit(1);
   }
@@ -56,7 +56,7 @@ const testQueryCallback = async () => {
       respLength = resp.data.graphqurl_test.length;
     },
     error => {
-      console.log('Failed: Query with callback');
+      console.log('✖ Query with callback');
       console.log(error);
       process.exit(1);
     }
@@ -64,9 +64,9 @@ const testQueryCallback = async () => {
   setTimeout(
     () => {
       if (respLength === 1) {
-        console.log('Passed: Query with callback');
+        console.log('✔︎ Query with callback');
       } else {
-        console.log('Failed: Query with callback');
+        console.log('✖ Query with callback');
       }
     },
     5000

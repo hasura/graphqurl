@@ -24,4 +24,4 @@ const deleteTable = async () => {
   );
 };
 
-deleteTable().then(() => console.log('Test state cleared'));
+deleteTable().then(() => console.log('\nTest state cleared'));

@@ -22,14 +22,14 @@ const testMutationPromise = async () => {
   try {
     response = await query(mutationOpts);
     if (response.data.insert_graphqurl_test.affected_rows === 1) {
-      console.log('Passed: Mutation with promise');
+      console.log('✔︎ Mutation with promise');
     } else {
-      console.log('Failed: Mutation with promise');
+      console.log('✖ Mutation with promise');
       console.log(JSON.stringify(response, null, 2));
       process.exit('1');
     }
   } catch (e) {
-    console.log('Failed: Mutation with promise');
+    console.log('✖ Mutation with promise');
     console.error(e);
     process.exit(1);
   }
@@ -58,7 +58,7 @@ const testMutationCallback = async () => {
       affectedRows = resp.data.insert_graphqurl_test.affected_rows;
     },
     error => {
-      console.log('Failed: Mutation with callback');
+      console.log('✖ Mutation with callback');
       console.log(error);
       process.exit(1);
     }
@@ -66,9 +66,9 @@ const testMutationCallback = async () => {
   setTimeout(
     () => {
       if (affectedRows === 1) {
-        console.log('Passed: Mutation with callback');
+        console.log('✔︎ Mutation with callback');
       } else {
-        console.log('Failed: Mutation with callback');
+        console.log('✖ Mutation with callback');
       }
     },
     5000
