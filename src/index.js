@@ -24,28 +24,29 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.graphiql) {
-      runGraphiQL(endpoint);
-    } else {
-      if (queryString === null) {
-        queryString = await getQueryFromTerminalUI(endpoint, headers);
-      }
-
-      const queryOptions = {
-        query: queryString,
-        endpoint: endpoint,
-        headers,
-        variables,
-        name: flags.name
-      };
-      const successCallback = (response, queryType, parsedQuery) => {
-        querySuccessCb(this, response, queryType, parsedQuery, endpoint);
-      };
-      const errorCallback = (error, queryType, parsedQuery) => {
-        queryErrorCb(this, error, queryType, parsedQuery);
-      };
-      cli.action.start(`Executing at ${endpoint}`);
-      await query(queryOptions, successCallback, errorCallback);
+      runGraphiQL(endpoint, queryString, headers, variables);
+      return;
     }
+
+    if (queryString === null) {
+      queryString = await getQueryFromTerminalUI(endpoint, headers);
+    }
+
+    const queryOptions = {
+      query: queryString,
+      endpoint: endpoint,
+      headers,
+      variables,
+      name: flags.name
+    };
+    const successCallback = (response, queryType, parsedQuery) => {
+      querySuccessCb(this, response, queryType, parsedQuery, endpoint);
+    };
+    const errorCallback = (error, queryType, parsedQuery) => {
+      queryErrorCb(this, error, queryType, parsedQuery);
+    };
+    cli.action.start(`Executing at ${endpoint}`);
+    await query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {

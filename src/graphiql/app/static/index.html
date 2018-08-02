@@ -1,19 +1,12 @@
-const express = require('express');
-const open = require('open');
-const path = require('path');
-
-
-const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
-  const graphiqlHtml = `
 <html lang="en-us">
   <head>
     <link rel="icon" type="image/png" href="./favicon.png" />
     <script>
      window.__env = {
-       graphqlEndpoint: "${endpoint}",
-       headers: ${JSON.stringify(headers)},
-       variables: ${JSON.stringify(variables)},
-       query: \`${query || ''}\`
+       graphqlEndpoint: {{.graphqlEndpoint}},
+       headers: {{.headers}},
+       variables: {{.variables}},
+       query: {{.query}}
      };
     </script>
   </head>
@@ -52,25 +45,19 @@ const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
     <div id="content" class="mainContent"></div>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
 
+    {{ if .cliStaticDir }}
+
     <link rel="stylesheet" href="/static/main.css" charset="UTF-8"/>
     <script src="/static/vendor.js" charset="UTF-8"></script>
     <script src="/static/main.js" charset="UTF-8"></script>
 
+    {{ else }}
+
+    <link rel="stylesheet" href="./dist/main.css" charset="UTF-8"/>
+    <script src="./dist/vendor.js" charset="UTF-8"></script>
+    <script src="./dist/main.js" charset="UTF-8"></script>
+
+   {{ end }}
+
   </body>
 </html>
-`
-  const app = new express();
-
-  app.use('/static', express.static(path.join(__dirname, 'app', 'static', 'dist')));
-
-  app.get('/', (req, res) => {
-    res.send(graphiqlHtml);
-  });
-
-  app.listen(port, () => {
-    console.log(`GraphiQL running at http://localhost:${port}.`);
-    open(`http://localhost:${port}`);
-  });
-};
-
-module.exports = runGraphiQL;
