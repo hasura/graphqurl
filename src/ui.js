@@ -1,8 +1,8 @@
-const tk = require( 'terminal-kit' );
-const { introspectionQuery, buildClientSchema, parse} = require('graphql');
+const tk = require('terminal-kit');
+const {introspectionQuery, buildClientSchema, parse} = require('graphql');
 const query = require('./query');
-const { validateQuery, getAutocompleteSuggestions } = require('graphql-language-service-interface');
-const { Position } = require('graphql-language-service-utils');
+const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
+const {Position} = require('graphql-language-service-utils');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -43,9 +43,9 @@ const inputLine = d => {
 };
 
 const mOpts = {
-  style: term.inverse ,
+  style: term.inverse,
   selectedStyle: term.dim.blue.bgGreen,
-  exitOnUnexpectedKey: true
+  exitOnUnexpectedKey: true,
 };
 let mItems = ['hello', 'world'];
 
@@ -61,11 +61,11 @@ term.on('key', async function (key) {
       terminate();
     }
 
-    if ((key == 'ENTER' || key == 'KP_ENTER') && !menuOn) {
+    if ((key === 'ENTER' || key === 'KP_ENTER') && !menuOn) {
       qs = ib.getInput();
       try {
         const errors = await validateQuery(parse(qs), schema);
-        if (errors.length == 0) {
+        if (errors.length === 0) {
           ib.abort();
           terminate();
         }
@@ -86,7 +86,7 @@ term.on('key', async function (key) {
       menuOn = true;
       let resp = qs;
       try {
-        let r = await term.singleLineMenu( mItems, mOpts ).promise;
+        let r = await term.singleLineMenu(mItems, mOpts).promise;
 
         // TODO: need better logic here
         let sp = qs.split(' ');

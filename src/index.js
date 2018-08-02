@@ -1,7 +1,7 @@
 const query = require('./query');
 const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
-const {CLIError} = require('@oclif/errors');
+const CLIError = require('@oclif/errors');
 const fs = require('fs');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
@@ -18,11 +18,11 @@ class GraphqurlCommand extends Command {
     let queryString = await this.getQueryString(args, flags);
     const variables = await this.getQueryVariables(args, flags);
 
-    if (queryString == null) {
+    if (queryString === null) {
       queryString = await getQueryFromTerminalUI(endpoint, headers);
     }
 
-    if (endpoint == null) {
+    if (endpoint === null) {
       throw new CLIError('endpoint is required');
     }
 
@@ -118,7 +118,7 @@ GraphqurlCommand.flags = {
   // query for graphql
   query: flags.string({
     char: 'q',
-    description: 'graphql query to execute'
+    description: 'graphql query to execute',
   }),
 
   // headers, comma separated if they are many
@@ -155,8 +155,8 @@ GraphqurlCommand.flags = {
 GraphqurlCommand.args = [
   {
     name: 'endpoint',
-    description: 'graphql endpoint'
-  }
+    description: 'graphql endpoint',
+  },
 ];
 
 module.exports = GraphqurlCommand;

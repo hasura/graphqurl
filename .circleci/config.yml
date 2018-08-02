@@ -16,6 +16,7 @@ jobs:
           - sh
           - -c
           - "sleep 30; graphql-engine serve"
+          # TODO: ^ need better checks than delays
     working_directory: ~/cli
     environment:
       GRAPHQURL_TEST_GRAPHQL_ENGINE_URL: http://localhost:8080
@@ -31,6 +32,7 @@ jobs:
           command: .circleci/greenkeeper
       - run: ./bin/run --version
       - run: ./bin/run --help
+      # TODO: need better checks that delays
       - run: sleep 30
       - run:
           name: Test
