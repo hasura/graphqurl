@@ -1,7 +1,7 @@
 const tk = require( 'terminal-kit' );
-const { introspectionQuery, buildClientSchema } = require('graphql');
+const { introspectionQuery, buildClientSchema, parse} = require('graphql');
 const query = require('./query');
-const { getAutocompleteSuggestions } = require('graphql-language-service-interface');
+const { validateQuery, getAutocompleteSuggestions } = require('graphql-language-service-interface');
 const { Position } = require('graphql-language-service-utils');
 
 // FIXME: needs js idiomatic refactor
@@ -49,6 +49,22 @@ term.on( 'key' , async function( key ) {
       qs = ib.getInput();
       ib.abort();
       terminate();
+    }
+
+    if ((key == 'ENTER' || key == 'KP_ENTER') && !menuOn) {
+      qs = ib.getInput();
+      try {
+        const errors = await validateQuery(parse(qs), schema);
+        if (errors.length == 0) {
+          ib.abort();
+          terminate();
+        }
+      } catch (err) {
+        ib.abort();
+        term.eraseLine();
+        term.left(qs.length + 5);
+        inputLine(qs);
+      }
     }
 
     if (key === 'TAB' && !menuOn) {
