@@ -33,7 +33,8 @@ const inputLine = (d) => {
 
 const mOpts = {
   style: term.inverse ,
-  selectedStyle: term.dim.blue.bgGreen
+  selectedStyle: term.dim.blue.bgGreen,
+  exitOnUnexpectedKey: true
 };
 let mItems = ['hello', 'world'];
 
@@ -60,10 +61,14 @@ term.on( 'key' , async function( key ) {
       let resp = qs;
       try {
         r = await term.singleLineMenu( mItems, mOpts ).promise;
-        sp = qs.split(' ');
-        sp.pop();
-        resp = sp.join(' ') + ' ' + r.selectedText;
+
+        // TODO: need better logic here
+        let sp = qs.split(' ');
+        let rm = sp.pop();
+        resp = sp.join(' ') + (sp.length > 0 ? ' ' : '') + (r.selectedText ? r.selectedText : rm);
+
         ib.abort();
+        term.eraseLine();
         term.previousLine();
         term.eraseLine();
         inputLine(resp);
