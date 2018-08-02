@@ -1,7 +1,7 @@
 ---
 version: 2
 jobs:
-  node-8: &test
+  build:
     docker:
       - image: node:8
       - image: circleci/postgres:10-alpine
@@ -39,13 +39,3 @@ jobs:
             - ~/cli/node_modules
             - ~/.npm
             - /usr/local/lib/node_modules
-  node-latest:
-    <<: *test
-    docker:
-      - image: node:latest
-
-workflows:
-  version: 2
-  "graphqurl":
-    jobs:
-      - node-8
