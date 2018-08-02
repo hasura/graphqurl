@@ -1,28 +1,28 @@
-const query = require('./query')
-const {Command, flags} = require('@oclif/command')
-const {cli} = require('cli-ux')
-const fs = require('fs')
-const util = require('util')
-const {querySuccessCb, queryErrorCb} = require('./callbacks.js')
-const getQueryFromTerminalUI = require('./ui')
+const query = require('./query');
+const {Command, flags} = require('@oclif/command');
+const {cli} = require('cli-ux');
+const fs = require('fs');
+const util = require('util');
+const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
+const getQueryFromTerminalUI = require('./ui');
 
 // Convert fs.readFile into Promise version of same
-const readFile = util.promisify(fs.readFile)
+const readFile = util.promisify(fs.readFile);
 
 class GraphqurlCommand extends Command {
   async run() {
-    const {args, flags} = this.parse(GraphqurlCommand)
+    const {args, flags} = this.parse(GraphqurlCommand);
     // this.log(`query: ${args.query}`);
     // this.log(`endpoint: ${flags.endpoint}`);
     // this.log(`header: ${flags.header}`);
     // this.log(`variable: ${flags.variable}`);
 
-    const headers = this.parseHeaders(flags.header)
-    let queryString = await this.getQueryString(args, flags)
-    const variables = await this.getQueryVariables(args, flags)
+    const headers = this.parseHeaders(flags.header);
+    let queryString = await this.getQueryString(args, flags);
+    const variables = await this.getQueryVariables(args, flags);
 
     if (queryString === null) {
-      queryString = await getQueryFromTerminalUI(flags.endpoint, headers)
+      queryString = await getQueryFromTerminalUI(flags.endpoint, headers);
       // this.log(queryString);
     }
     const queryOptions = {
@@ -31,57 +31,57 @@ class GraphqurlCommand extends Command {
       headers,
       variables,
       name: flags.name,
-    }
+    };
     const successCallback = (response, queryType, parsedQuery) => {
-      querySuccessCb(this, response, queryType, parsedQuery, flags.endpoint)
-    }
+      querySuccessCb(this, response, queryType, parsedQuery, flags.endpoint);
+    };
     const errorCallback = (error, queryType, parsedQuery) => {
-      queryErrorCb(this, error, queryType, parsedQuery)
-    }
-    cli.action.start(`Executing at ${flags.endpoint}`)
-    await query(queryOptions, successCallback, errorCallback)
+      queryErrorCb(this, error, queryType, parsedQuery);
+    };
+    cli.action.start(`Executing at ${flags.endpoint}`);
+    await query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {
-    let headerObject = {}
+    let headerObject = {};
     if (headersArray) {
       for (let h of headersArray) {
-        const parts = h.split(':')
+        const parts = h.split(':');
         if (parts.length !== 2) {
-          this.error(`cannot parse header '${h}' (multiple ':')`)
+          this.error(`cannot parse header '${h}' (multiple ':')`);
         }
-        headerObject[parts[0].trim()] = parts[1].trim()
+        headerObject[parts[0].trim()] = parts[1].trim();
       }
     }
-    return headerObject
+    return headerObject;
   }
 
   async getQueryString(args, flags) {
     if (flags.queryFile) {
-      const fileContent = await readFile(flags.queryFile)
-      return fileContent
+      const fileContent = await readFile(flags.queryFile);
+      return fileContent;
     }
     if (args.query) {
-      return args.query
+      return args.query;
     }
-    return null
+    return null;
   }
 
   async getQueryVariables(args, flags) {
-    let variablesObject = {}
+    let variablesObject = {};
     if (flags.variablesFile) {
-      variablesObject = JSON.parse(await readFile(flags.variablesFile))
+      variablesObject = JSON.parse(await readFile(flags.variablesFile));
     }
     if (flags.variable) {
       for (let v of flags.variable) {
-        const parts = v.split('=')
+        const parts = v.split('=');
         if (parts.length !== 2) {
-          this.error(`cannot parse variable '${v} (multiple '=')`)
+          this.error(`cannot parse variable '${v} (multiple '=')`);
         }
-        variablesObject[parts[0].trim()] = parts[1].trim()
+        variablesObject[parts[0].trim()] = parts[1].trim();
       }
     }
-    return variablesObject
+    return variablesObject;
   }
 }
 
@@ -93,7 +93,7 @@ gq \\
   -v 'variable1=value1' \\
   -v 'variable2=value2' \\
   'query { table { column } }'
-`
+`;
 
 GraphqurlCommand.flags = {
   // add --version flag to show CLI version
@@ -139,13 +139,13 @@ GraphqurlCommand.flags = {
     char: 'n',
     description: 'name of the graphql definition to execute, use only if there are multiple definitions',
   }),
-}
+};
 
 GraphqurlCommand.args = [
   {
     name: 'query',
     description: 'graphql query as a string',
   },
-]
+];
 
-module.exports = GraphqurlCommand
+module.exports = GraphqurlCommand;
