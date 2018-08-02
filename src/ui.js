@@ -1,8 +1,8 @@
-const tk = require('terminal-kit');
-const {introspectionQuery, buildClientSchema} = require('graphql');
+const tk = require( 'terminal-kit' );
+const { introspectionQuery, buildClientSchema, parse} = require('graphql');
 const query = require('./query');
-const {getAutocompleteSuggestions} = require('graphql-language-service-interface');
-const {Position} = require('graphql-language-service-utils');
+const { validateQuery, getAutocompleteSuggestions } = require('graphql-language-service-interface');
+const { Position } = require('graphql-language-service-utils');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -43,8 +43,9 @@ const inputLine = d => {
 };
 
 const mOpts = {
-  style: term.inverse,
+  style: term.inverse ,
   selectedStyle: term.dim.blue.bgGreen,
+  exitOnUnexpectedKey: true
 };
 let mItems = ['hello', 'world'];
 
@@ -60,6 +61,22 @@ term.on('key', async function (key) {
       terminate();
     }
 
+    if ((key == 'ENTER' || key == 'KP_ENTER') && !menuOn) {
+      qs = ib.getInput();
+      try {
+        const errors = await validateQuery(parse(qs), schema);
+        if (errors.length == 0) {
+          ib.abort();
+          terminate();
+        }
+      } catch (err) {
+        ib.abort();
+        term.eraseLine();
+        term.left(qs.length + 5);
+        inputLine(qs);
+      }
+    }
+
     if (key === 'TAB' && !menuOn) {
       qs = ib.getInput();
       p.setCharacter(qs.length - 1);
@@ -69,11 +86,15 @@ term.on('key', async function (key) {
       menuOn = true;
       let resp = qs;
       try {
-        let r = await term.singleLineMenu(mItems, mOpts).promise;
+        let r = await term.singleLineMenu( mItems, mOpts ).promise;
+
+        // TODO: need better logic here
         let sp = qs.split(' ');
-        sp.pop();
-        resp = sp.join(' ') + ' ' + r.selectedText;
+        let rm = sp.pop();
+        resp = sp.join(' ') + (sp.length > 0 ? ' ' : '') + (r.selectedText ? r.selectedText : rm);
+
         ib.abort();
+        term.eraseLine();
         term.previousLine();
         term.eraseLine();
         inputLine(resp);
