@@ -6,6 +6,7 @@ const fs = require('fs');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const getQueryFromTerminalUI = require('./ui');
+const runGraphiQL = require('./graphiql/server');
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -18,29 +19,33 @@ class GraphqurlCommand extends Command {
     let queryString = await this.getQueryString(args, flags);
     const variables = await this.getQueryVariables(args, flags);
 
-    if (queryString === null) {
-      queryString = await getQueryFromTerminalUI(endpoint, headers);
-    }
-
     if (endpoint === null) {
       throw new CLIError('endpoint is required');
     }
 
-    const queryOptions = {
-      query: queryString,
-      endpoint: endpoint,
-      headers,
-      variables,
-      name: flags.name,
-    };
-    const successCallback = (response, queryType, parsedQuery) => {
-      querySuccessCb(this, response, queryType, parsedQuery, endpoint);
-    };
-    const errorCallback = (error, queryType, parsedQuery) => {
-      queryErrorCb(this, error, queryType, parsedQuery);
-    };
-    cli.action.start(`Executing at ${endpoint}`);
-    await query(queryOptions, successCallback, errorCallback);
+    if (flags.graphiql) {
+      runGraphiQL(endpoint);
+    } else {
+      if (queryString === null) {
+        queryString = await getQueryFromTerminalUI(endpoint, headers);
+      }
+
+      const queryOptions = {
+        query: queryString,
+        endpoint: endpoint,
+        headers,
+        variables,
+        name: flags.name
+      };
+      const successCallback = (response, queryType, parsedQuery) => {
+        querySuccessCb(this, response, queryType, parsedQuery, endpoint);
+      };
+      const errorCallback = (error, queryType, parsedQuery) => {
+        queryErrorCb(this, error, queryType, parsedQuery);
+      };
+      cli.action.start(`Executing at ${endpoint}`);
+      await query(queryOptions, successCallback, errorCallback);
+    }
   }
 
   parseHeaders(headersArray) {
@@ -119,6 +124,12 @@ GraphqurlCommand.flags = {
   query: flags.string({
     char: 'q',
     description: 'graphql query to execute',
+  }),
+
+  // run graphiql
+  graphiql: flags.boolean({
+    char: 'i',
+    description: 'open graphiql with the given endpoint'
   }),
 
   // headers, comma separated if they are many
