@@ -31,6 +31,7 @@ jobs:
           command: .circleci/greenkeeper
       - run: ./bin/run --version
       - run: ./bin/run --help
+      - run: sleep 30
       - run:
           name: Test
           command: npm test
