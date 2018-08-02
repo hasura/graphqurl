@@ -1,6 +1,7 @@
 const query = require('./query');
 const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
+const {CLIError} = require('@oclif/errors');
 const fs = require('fs');
 const util = require('util');
 const { querySuccessCb, queryErrorCb } = require('./callbacks.js');
@@ -12,33 +13,33 @@ const readFile = util.promisify(fs.readFile);
 class GraphqurlCommand extends Command {
   async run() {
     const {args, flags} = this.parse(GraphqurlCommand);
-    // this.log(`query: ${args.query}`);
-    // this.log(`endpoint: ${flags.endpoint}`);
-    // this.log(`header: ${flags.header}`);
-    // this.log(`variable: ${flags.variable}`);
-
     const headers = this.parseHeaders(flags.header);
+    const endpoint = this.getEndpoint(args);
     let queryString = await this.getQueryString(args, flags);
     const variables = await this.getQueryVariables(args, flags);
 
     if (queryString == null) {
-      queryString = await getQueryFromTerminalUI(flags.endpoint, headers);
-      // this.log(queryString);
+      queryString = await getQueryFromTerminalUI(endpoint, headers);
     }
+
+    if (endpoint == null) {
+      throw new CLIError('endpoint is required');
+    }
+
     const queryOptions = {
       query: queryString,
-      endpoint: flags.endpoint,
+      endpoint: endpoint,
       headers,
       variables,
       name: flags.name
     };
     const successCallback = (response, queryType, parsedQuery) => {
-      querySuccessCb(this, response, queryType, parsedQuery, flags.endpoint);
+      querySuccessCb(this, response, queryType, parsedQuery, endpoint);
     };
     const errorCallback = (error, queryType, parsedQuery) => {
       queryErrorCb(this, error, queryType, parsedQuery);
     };
-    cli.action.start(`Executing at ${flags.endpoint}`);
+    cli.action.start(`Executing at ${endpoint}`);
     await query(queryOptions, successCallback, errorCallback);
   }
 
@@ -56,12 +57,22 @@ class GraphqurlCommand extends Command {
     return headerObject;
   }
 
+  getEndpoint(args) {
+    if (args.endpoint) {
+      return args.endpoint;
+    }
+    if (process.env.GRAPHQURL_ENDPOINT) {
+      return process.env.GRAPHQURL_ENDPOINT;
+    }
+    return null;
+  }
+
   async getQueryString(args, flags) {
     if (flags.queryFile) {
       return await readFile(flags.queryFile);
     }
-    if (args.query) {
-      return args.query;
+    if (flags.query) {
+      return flags.query;
     }
     return null;
   }
@@ -84,15 +95,17 @@ class GraphqurlCommand extends Command {
   }
 }
 
-GraphqurlCommand.description = `GraphQURL is cURL for GraphQL
+GraphqurlCommand.description = `GraphQURL: cURL for GraphQL
 gq \\
-  --endpoint https://my-graphql-endpoint/graphql \\
+  https://my-graphql-endpoint/graphql \\
   -H 'Authorization: token <token>' \\
   -H 'X-Another-Header: another-header-value' \\
   -v 'variable1=value1' \\
   -v 'variable2=value2' \\
-  'query { table { column } }'
+  -q 'query { table { column } }'
 `;
+
+GraphqurlCommand.usage = 'ENDPOINT [-q QUERY]';
 
 GraphqurlCommand.flags = {
   // add --version flag to show CLI version
@@ -101,12 +114,10 @@ GraphqurlCommand.flags = {
   // add --help flag to show CLI version
   help: flags.help({char: 'h'}),
 
-  // endpoint for graphql
-  endpoint: flags.string({
-    char: 'e',
-    required: true,
-    description: 'graphql endpoint to run the query',
-    env: 'GRAPHQURL_ENDPOINT'
+  // query for graphql
+  query: flags.string({
+    char: 'q',
+    description: 'graphql query to execute'
   }),
 
   // headers, comma separated if they are many
@@ -142,8 +153,8 @@ GraphqurlCommand.flags = {
 
 GraphqurlCommand.args = [
   {
-    name: 'query',
-    description: 'graphql query as a string'
+    name: 'endpoint',
+    description: 'graphql endpoint'
   }
 ];
 

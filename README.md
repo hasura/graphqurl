@@ -7,7 +7,7 @@ cURL for GraphQL - CLI and JS library for making GraphQL queries
 
 [![CircleCI](https://circleci.com/gh/hasura/graphqurl/tree/master.svg?style=shield)](https://circleci.com/gh/hasura/graphqurl/tree/master)
 
-[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/hasura/graphqurl?branch=master&svg=true)](https://ci.appveyor.com/project/hasura/graphqurl/branch/master)
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/hasura/graphqurl?branch=master&svg=true)](https://ci.appveyor.com/project/hasura-bot/graphqurl/branch/master)
 [![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/package.json)
@@ -34,10 +34,9 @@ $ npm install --save graphqurl
 
 ```bash
 gq \
-     --endpoint https://my-graphql-endpoint/graphql \
+     https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
-     -H 'X-Another-Header: another-header-value' \
-     'query { table { column } }'
+     -q 'query { table { column } }'
 ```
 
 #### Auto-complete
@@ -46,7 +45,7 @@ GraphQURL can auto-complete queries using schema introspection. Execute the
 command without providing a query string:
 
 ```bash
-$ gq -e <endpoint> [-H <header:value>]
+$ gq <endpoint> [-H <header:value>]
 Enter the query, use TAB to auto-complete, Ctrl+Q to execute, Ctrl+C to cancel
 gql>
 ```
@@ -61,9 +60,9 @@ flag.
 
 ```bash
 gq \
-    -e <endpoint> \ 
+    <endpoint> \ 
     -v 'name=hasura' \
-    'mutation ($name: String) { table (objects: [{ name: $name }]) }'
+    -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
 ```
 
 #### Subscription
@@ -72,31 +71,30 @@ Subscriptions can be executed and the response is streamed on to stdout.
 
 ```bash
 gq \
-    -e <endpoint> \ 
-     'subscription { table { column } }'
+    <endpoint> \ 
+    -q 'subscription { table { column } }'
 ```
 
 ### Command
 
 ```bash
-$ gq [QUERY]
+$ gq ENDPOINT [-q QUERY]
 ```
 
 #### Args
 
-* **QUERY**: graphql query as a string
+* `ENDPOINT`: graphql endpoint (can be also set as `GRAPHQURL_ENDPOINT` env var)
 
 #### Options
 
-- ```-H, --header="key:value"```: request header
-- ```-e, --endpoint=endpoint```: (required) graphql endpoint to run the query
-  [can be set using `GRAPHQURL_ENDPOINT` env var also]
-- ```-h, --help```: show CLI help
-- ```-v, --variable="key=value"```: variables used in the query
-- ```-n, --name=name```: name of the graphql definition to execute, use only if there are multiple definitions
-- ```--queryFile=/path/to/queryfile```: file to read the query from
-- ```--variablesFile=/path/to/variablefile```: file to read the query variables from
-- ```--version```: show CLI version
+- `-q, --query=query`: graphql query to exxecute
+- `-H, --header="key:value"`: request header
+- `-v, --variable="key=value"`: variables used in the query
+- `-n, --name=name`: name of the graphql definition to execute, use only if there are multiple definitions
+- `--queryFile=/path/to/queryfile`: file to read the query from
+- `--variablesFile=/path/to/variablefile`: file to read the query variables from
+- `--version`: show CLI version
+- `-h, --help`: show CLI help
 
 
 ### Node Library
@@ -334,19 +332,19 @@ Generic example:
 
 ```bash
 gq \
-     --endpoint https://my-graphql-endpoint/graphql \
+     https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
      -H 'X-Another-Header: another-header-value' \
      -v 'variable1=value1' \
      -v 'variable2=value2' \
-     'query { table { column } }'
+     -q 'query { table { column } }'
 ```
 
 Reading the query and variables from a file:
 
 ```bash
 gq \
-     --endpoint https://my-graphql-endpoint/graphql \
+     https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
      -H 'X-Another-Header: another-header-value' \
      --variableFile='./queryVariables.json' \
