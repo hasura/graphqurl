@@ -41,7 +41,10 @@
   ],
   "homepage": "https://github.com/hasura/graphqurl",
   "keywords": [
-    "oclif"
+    "oclif",
+    "cli",
+    "graphql",
+    "autocomplete"
   ],
   "license": "Apache-2.0",
   "main": "src/query.js",
