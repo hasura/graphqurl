@@ -37,7 +37,7 @@ class GraphqurlCommand extends Command {
       endpoint: endpoint,
       headers,
       variables,
-      name: flags.name
+      name: flags.name,
     };
     const successCallback = (response, queryType, parsedQuery) => {
       querySuccessCb(this, response, queryType, parsedQuery, endpoint);
@@ -130,13 +130,13 @@ GraphqurlCommand.flags = {
   // run graphiql
   graphiql: flags.boolean({
     char: 'i',
-    description: 'open graphiql with the given endpoint'
+    description: 'open graphiql with the given endpoint',
   }),
 
   // specify port to run graphiql at
   port: flags.integer({
     char: 'p',
-    descirption: 'port to run graphiql at (default 4500)'
+    descirption: 'port to run graphiql at (default 4500)',
   }),
 
   // headers, comma separated if they are many

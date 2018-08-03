@@ -1,7 +1,6 @@
-const express = require('express');
+const Express = require('express');
 const open = require('open');
 const path = require('path');
-
 
 const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
   const graphiqlHtml = `
@@ -58,10 +57,10 @@ const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
 
   </body>
 </html>
-`
-  const app = new express();
+`;
+  const app = new Express();
 
-  app.use('/static', express.static(path.join(__dirname, 'app', 'static', 'dist')));
+  app.use('/static', Express.static(path.join(__dirname, 'app', 'static', 'dist')));
 
   app.get('/', (req, res) => {
     res.send(graphiqlHtml);
