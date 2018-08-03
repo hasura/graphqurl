@@ -4,7 +4,8 @@
   "version": "0.0.8",
   "author": "Hasura",
   "bin": {
-    "gq": "./bin/run"
+    "gq": "./bin/run",
+    "graphqurl": "./bin/run"
   },
   "bugs": "https://github.com/hasura/graphqurl/issues",
   "dependencies": {
