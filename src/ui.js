@@ -87,28 +87,25 @@ term.on('key', async function (key) {
         if (c === '}' || c === ')' || c === ']') {
           bStack.pop();
         }
-      };
+      }
       p.setCharacter(qs.length);
       let acs = getAutocompleteSuggestions(schema, qs, p);
       acs = acs.map(o => o.label);
 
-      let bStackACS = [];
-      bStack.map((c) => {
-        switch(c) {
+      let bStackACS = bStack.map(c => {
+        switch (c) {
         case '{':
-          bStackACS.push('}');
-          break;
+          return '}';
         case '(':
-          bStackACS.push(')');
-          break;
+          return ')';
         case '[':
-          bStackACS.push(']');
-          break;
+          return ']';
         }
+        return undefined;
       });
 
-      if (bStackACS.length > 0 ) {
-        acs.push(bStackACS[bStackACS.length-1]);
+      if (bStackACS.length > 0) {
+        acs.push(bStackACS[bStackACS.length - 1]);
       }
 
       mItems = acs;
