@@ -20,7 +20,7 @@ class GraphqurlCommand extends Command {
     const variables = await this.getQueryVariables(args, flags);
 
     if (endpoint === null) {
-      throw new CLIError('endpoint is required');
+      throw new CLIError('endpoint is required: `gq <endpoint>`');
     }
 
     if (flags.graphiql) {
@@ -45,7 +45,7 @@ class GraphqurlCommand extends Command {
     const errorCallback = (error, queryType, parsedQuery) => {
       queryErrorCb(this, error, queryType, parsedQuery);
     };
-    cli.action.start(`Executing at ${endpoint}`);
+    cli.action.start(`Executing on ${endpoint}`);
     await query(queryOptions, successCallback, errorCallback);
   }
 
@@ -159,6 +159,7 @@ GraphqurlCommand.flags = {
 
   // run graphiql
   graphiql: flags.boolean({
+    default: false,
     char: 'i',
     description: 'open graphiql with the given endpoint, headers, query and variables',
   }),
@@ -168,14 +169,12 @@ GraphqurlCommand.flags = {
     char: 'a',
     default: 'localhost',
     description: 'address to use for graphiql',
-    dependsOn: ['graphiql'],
   }),
   // specify port to run graphiql at
   graphiqlPort: flags.integer({
     char: 'p',
     default: 4500,
     description: 'port to use for graphiql',
-    dependsOn: ['graphiql'],
   }),
 
 };
