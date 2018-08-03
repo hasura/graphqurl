@@ -40,6 +40,10 @@ class GraphqurlCommand extends Command {
       variables,
       name: flags.name,
     };
+
+    this.args = args;
+    this.flags = flags;
+
     const successCallback = (response, queryType, parsedQuery) => {
       querySuccessCb(this, response, queryType, parsedQuery, endpoint);
     };
@@ -176,6 +180,12 @@ GraphqurlCommand.flags = {
     char: 'p',
     default: 4500,
     description: 'port to use for graphiql',
+  }),
+
+  singleLine: flags.boolean({
+    char: 'l',
+    default: false,
+    description: 'show output in a single line, do not prettify',
   }),
 
 };
