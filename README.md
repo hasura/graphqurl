@@ -188,6 +188,8 @@ query(
  .catch((error) => console.error(error));
 ```
 
+> Subscriptions are not supported in browsers yet.
+
 ### API
 
 #### query(options, successCallback, errorCallback)
