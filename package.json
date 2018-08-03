@@ -18,12 +18,13 @@
     "apollo-link-http": "^1.5.4",
     "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
-    "esm": "^3.0.72",
+    "express": "^4.16.3",
     "graphql": "^0.13.2",
     "graphql-language-service-interface": "^1.2.2",
     "graphql-language-service-utils": "^1.2.2",
     "graphql-tag": "^2.9.2",
     "node-fetch": "^2.2.0",
+    "opn": "^5.3.0",
     "subscriptions-transport-ws": "^0.9.13",
     "terminal-kit": "^1.19.2",
     "ws": "^6.0.0"
@@ -37,7 +38,9 @@
   },
   "files": [
     "/bin",
-    "/src"
+    "/src",
+    "/src/graphiql/server.js",
+    "/src/graphiql/app/static/dist/*.{js,css}"
   ],
   "homepage": "https://github.com/hasura/graphqurl",
   "keywords": [
@@ -54,7 +57,9 @@
   "repository": "hasura/graphqurl",
   "scripts": {
     "eslintfix": "eslint . --fix",
+    "build-graphiql": "cd src/graphiql/app && npm install && npm run build",
     "posttest": "eslint .",
+    "prepublish": "npm run build-graphiql",
     "test": "node test/index.test.js && node test/clearstate.test.js"
   }
 }
