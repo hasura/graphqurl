@@ -79,9 +79,38 @@ term.on('key', async function (key) {
 
     if (key === 'TAB' && !menuOn) {
       qs = ib.getInput();
+      let bStack = [];
+      for (let c of qs) {
+        if (c === '{' || c === '(' || c === '[') {
+          bStack.push(c);
+        }
+        if (c === '}' || c === ')' || c === ']') {
+          bStack.pop();
+        }
+      };
       p.setCharacter(qs.length);
       let acs = getAutocompleteSuggestions(schema, qs, p);
       acs = acs.map(o => o.label);
+
+      let bStackACS = [];
+      bStack.map((c) => {
+        switch(c) {
+        case '{':
+          bStackACS.push('}');
+          break;
+        case '(':
+          bStackACS.push(')');
+          break;
+        case '[':
+          bStackACS.push(']');
+          break;
+        }
+      });
+
+      if (bStackACS.length > 0 ) {
+        acs.push(bStackACS[bStackACS.length-1]);
+      }
+
       mItems = acs;
       menuOn = true;
       let resp = qs;
@@ -89,9 +118,14 @@ term.on('key', async function (key) {
         let r = await term.singleLineMenu(mItems, mOpts).promise;
 
         // TODO: need better logic here
+        const brackets = ['{', '(', '[', '}', ')', ']'];
         let tokens = qs.split(/[^A-Za-z_1-9]/);
         let lastToken = tokens.pop();
-        resp = qs.replace(new RegExp(lastToken + '$'), r.selectedText || '');
+        if (r.selectedText && brackets.indexOf(r.selectedText) > -1) {
+          resp = qs + r.selectedText;
+        } else {
+          resp = qs.replace(new RegExp(lastToken + '$'), r.selectedText || '');
+        }
 
         ib.abort();
         term.eraseLine();
