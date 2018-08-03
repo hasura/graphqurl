@@ -47,7 +47,7 @@
     "autocomplete"
   ],
   "license": "Apache-2.0",
-  "main": "src/query.js",
+  "main": "src/index.js",
   "oclif": {
     "bin": "gq"
   },
