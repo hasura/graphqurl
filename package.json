@@ -60,5 +60,6 @@
     "posttest": "eslint .",
     "prepublish": "npm run build-graphiql",
     "test": "node test/index.test.js && node test/clearstate.test.js"
-  }
+  },
+  "pre-commit": ["eslintfix"]
 }
