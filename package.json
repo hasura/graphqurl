@@ -1,7 +1,7 @@
 {
   "name": "graphqurl",
   "description": "cURL for GraphQL - CLI and JS library for making GraphQL queries",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "Hasura",
   "bin": {
     "gq": "./bin/run"
