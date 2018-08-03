@@ -39,6 +39,10 @@ class GraphqurlCommand extends Command {
       variables,
       name: flags.name,
     };
+
+    this.args = args;
+    this.flags = flags;
+
     const successCallback = (response, queryType, parsedQuery) => {
       querySuccessCb(this, response, queryType, parsedQuery, endpoint);
     };
@@ -103,13 +107,39 @@ class GraphqurlCommand extends Command {
 }
 
 GraphqurlCommand.description = `GraphQURL: cURL for GraphQL
-gq \\
-  https://my-graphql-endpoint/graphql \\
-  -H 'Authorization: token <token>' \\
-  -H 'X-Another-Header: another-header-value' \\
-  -v 'variable1=value1' \\
-  -v 'variable2=value2' \\
-  -q 'query { table { column } }'
+• Execute GraphQL queries from terminal
+• Supports queries, mutations, subscriptions, with headers and variables
+• Auto-complete queries on the CLI
+• Launch GraphiQL (with headers UI) on any endpoint
+
+# Examples:
+
+# Make a simple query
+gq https://my-graphql-endpoint -q 'query { table { column } }'
+
+# Make a query with CLI auto complete (this will show a gql prompt)
+gq https://my-graphql-endpoint
+
+# Open GraphiQL
+gq https://my-graphql-endpoint -i
+
+# Add a custom header
+gq https://my-graphql-endpoint \\
+   -H 'Authorizaion: token token-value' \\
+   -q 'query { table { column } }'
+
+# Execute a mutation with variables
+gq https://my-graphql-endpoint \\
+   -q 'muatation { insert_table(objects:[{ column: $var }]) { returning { column } } }' \\
+   -v 'var=abcd'
+
+# Execute a live query (prints out each event data to stdout)
+gq https://my-graphql-endpoint \\
+   -q 'subscription { table { column } }'
+
+# Execute a live query (print each event line by line)
+gq https://my-graphql-endpoint \\
+   -l -q 'subscription { table { column } }'
 `;
 
 GraphqurlCommand.usage = 'ENDPOINT [-q QUERY]';
@@ -176,6 +206,14 @@ GraphqurlCommand.flags = {
     default: 4500,
     description: 'port to use for graphiql',
   }),
+
+  // do not prettify the output
+  singleLine: flags.boolean({
+    char: 'l',
+    default: false,
+    description: 'show output in a single line, do not prettify',
+  }),
+
 
 };
 

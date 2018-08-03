@@ -105,6 +105,7 @@ $ gq ENDPOINT [-q QUERY]
 - `-i, --graphiql`: open graphiql with the given endpoint, headers, query and variables
 - `-p, --graphiqlPort=graphiqlPort`: [default: 4500] port to use for graphiql
 - `-a, --graphiqlAddress=graphiqlAddress`: [default: localhost] address to use for graphiql
+- `-l, --singleLine`: show output in a single line, do not prettify
 - `--version`: show CLI version
 - `-h, --help`: show CLI help
 
@@ -196,7 +197,7 @@ query(
 
 - **options**: [Object, *required*] GraphQL query options with the following properties:
   - endpoint: [String, *required*] GraphQL endpoint
-  - query: [String, *required*] GrapHQL query string
+  - query: [String, *required*] GraphQL query string
   - headers: [Object] Request headers, defaults to `{}`
   - variables: [Object] GraphQL query variables, defaults to '{}'
   - name: [String] Operation name. Used only if the `query` string contains multiple operations.

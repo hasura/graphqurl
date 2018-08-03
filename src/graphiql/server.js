@@ -67,7 +67,7 @@ const runGraphiQL = (endpoint, query, headers, variables, address, port) => {
   });
 
   app.listen(port, address, () => {
-    console.log(`GraphiQL running at http://${address}:${port}...`);
+    console.log(`GraphiQL running at http://${address}:${port} ...`);
     opn(`http://${address}:${port}`);
   });
 };

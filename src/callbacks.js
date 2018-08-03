@@ -2,13 +2,14 @@ const {cli} = require('cli-ux');
 const {handleGraphQLError, handleServerError} = require('./error.js');
 
 const querySuccessCb = (ctx, response, queryType) => {
+  const out = ctx.flags.singleLine ? JSON.stringify({data: response.data}) : JSON.stringify({data: response.data}, null, 2);
   if (queryType === 'subscription') {
     cli.action.stop('event received');
-    ctx.log(JSON.stringify({data: response.data}, null, 2));
+    ctx.log(out);
     cli.action.start('Waiting');
   } else {
     cli.action.stop('done');
-    ctx.log(JSON.stringify({data: response.data}, null, 2));
+    ctx.log(out);
   }
 };
 
