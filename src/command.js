@@ -1,11 +1,12 @@
 const query = require('./query');
 const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
-const CLIError = require('@oclif/errors');
+const {CLIError} = require('@oclif/errors');
 const fs = require('fs');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const getQueryFromTerminalUI = require('./ui');
+const runGraphiQL = require('./graphiql/server');
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -18,12 +19,17 @@ class GraphqurlCommand extends Command {
     let queryString = await this.getQueryString(args, flags);
     const variables = await this.getQueryVariables(args, flags);
 
-    if (queryString === null) {
-      queryString = await getQueryFromTerminalUI(endpoint, headers);
+    if (endpoint === null) {
+      throw new CLIError('endpoint is required: `gq <endpoint>`');
     }
 
-    if (endpoint === null) {
-      throw new CLIError('endpoint is required');
+    if (flags.graphiql) {
+      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlAddress, flags.graphiqlPort);
+      return;
+    }
+
+    if (queryString === null) {
+      queryString = await getQueryFromTerminalUI(endpoint, headers);
     }
 
     const queryOptions = {
@@ -39,7 +45,7 @@ class GraphqurlCommand extends Command {
     const errorCallback = (error, queryType, parsedQuery) => {
       queryErrorCb(this, error, queryType, parsedQuery);
     };
-    cli.action.start(`Executing at ${endpoint}`);
+    cli.action.start(`Executing on ${endpoint}`);
     await query(queryOptions, successCallback, errorCallback);
   }
 
@@ -150,6 +156,27 @@ GraphqurlCommand.flags = {
     char: 'n',
     description: 'name of the graphql definition to execute, use only if there are multiple definitions',
   }),
+
+  // run graphiql
+  graphiql: flags.boolean({
+    default: false,
+    char: 'i',
+    description: 'open graphiql with the given endpoint, headers, query and variables',
+  }),
+
+  // specify port to run graphiql at
+  graphiqlAddress: flags.string({
+    char: 'a',
+    default: 'localhost',
+    description: 'address to use for graphiql',
+  }),
+  // specify port to run graphiql at
+  graphiqlPort: flags.integer({
+    char: 'p',
+    default: 4500,
+    description: 'port to use for graphiql',
+  }),
+
 };
 
 GraphqurlCommand.args = [

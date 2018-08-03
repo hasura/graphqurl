@@ -13,9 +13,9 @@ class GQClient {
         endpoint: this.endpoint,
         headers: this.headers,
         variables,
-        name
-      }).then((response) => resolve(response))
-        .catch((error) => reject(error));
+        name,
+      }).then(response => resolve(response))
+      .catch(error => reject(error));
     });
   }
 }

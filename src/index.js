@@ -3,5 +3,5 @@ const GQClient = require('./client');
 
 module.exports = {
   query,
-  GQClient
+  GQClient,
 };

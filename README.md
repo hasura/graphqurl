@@ -52,6 +52,16 @@ gql>
 You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
 `Ctrl+Q` to execute the query.
 
+#### GraphiQL
+
+Open GraphiQL with a given endpoint:
+
+```bash
+$ gq <endpoint> -i
+```
+
+> This is a custom GraphiQL where you can specify request headers.
+
 #### Mutation
 
 Mutations with variables can be executed by providing the variables with `-v`
@@ -92,9 +102,11 @@ $ gq ENDPOINT [-q QUERY]
 - `-n, --name=name`: name of the graphql definition to execute, use only if there are multiple definitions
 - `--queryFile=/path/to/queryfile`: file to read the query from
 - `--variablesFile=/path/to/variablefile`: file to read the query variables from
+- `-i, --graphiql`: open graphiql with the given endpoint, headers, query and variables
+- `-p, --graphiqlPort=graphiqlPort`: [default: 4500] port to use for graphiql
+- `-a, --graphiqlAddress=graphiqlAddress`: [default: localhost] address to use for graphiql
 - `--version`: show CLI version
 - `-h, --help`: show CLI help
-
 
 ### Node Library
 

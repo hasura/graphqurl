@@ -9,7 +9,7 @@ const {Position} = require('graphql-language-service-utils');
 var term = tk.terminal;
 
 let qs = '';
-let p = new Position(0, 0);
+let p = new Position(1, 0);
 let ib;
 let qReady = false;
 let schema;
@@ -37,7 +37,7 @@ const ibCb = error => {
 const inputLine = d => {
   term('gql> ');
   ib = term.inputField({
-    default: d ? d : '',
+    default: d || '',
   }, ibCb);
   qReady = true;
 };
@@ -47,7 +47,7 @@ const mOpts = {
   selectedStyle: term.dim.blue.bgGreen,
   exitOnUnexpectedKey: true,
 };
-let mItems = ['hello', 'world'];
+let mItems = [];
 
 term.on('key', async function (key) {
   if (key === 'CTRL_C') {
@@ -79,9 +79,35 @@ term.on('key', async function (key) {
 
     if (key === 'TAB' && !menuOn) {
       qs = ib.getInput();
-      p.setCharacter(qs.length - 1);
+      let bStack = [];
+      for (let c of qs) {
+        if (c === '{' || c === '(' || c === '[') {
+          bStack.push(c);
+        }
+        if (c === '}' || c === ')' || c === ']') {
+          bStack.pop();
+        }
+      }
+      p.setCharacter(qs.length);
       let acs = getAutocompleteSuggestions(schema, qs, p);
       acs = acs.map(o => o.label);
+
+      let bStackACS = bStack.map(c => {
+        switch (c) {
+        case '{':
+          return '}';
+        case '(':
+          return ')';
+        case '[':
+          return ']';
+        }
+        return undefined;
+      });
+
+      if (bStackACS.length > 0) {
+        acs.push(bStackACS[bStackACS.length - 1]);
+      }
+
       mItems = acs;
       menuOn = true;
       let resp = qs;
@@ -89,9 +115,14 @@ term.on('key', async function (key) {
         let r = await term.singleLineMenu(mItems, mOpts).promise;
 
         // TODO: need better logic here
-        let sp = qs.split(' ');
-        let rm = sp.pop();
-        resp = sp.join(' ') + (sp.length > 0 ? ' ' : '') + (r.selectedText ? r.selectedText : rm);
+        const brackets = ['{', '(', '[', '}', ')', ']'];
+        let tokens = qs.split(/[^A-Za-z_1-9]/);
+        let lastToken = tokens.pop();
+        if (r.selectedText && brackets.indexOf(r.selectedText) > -1) {
+          resp = qs + r.selectedText;
+        } else {
+          resp = qs.replace(new RegExp(lastToken + '$'), r.selectedText || '');
+        }
 
         ib.abort();
         term.eraseLine();
@@ -113,7 +144,7 @@ const getQueryFromTerminalUI = (endpoint, headers)  => {
       const r = response.data;
       // term.fullscreen(true);
       schema = buildClientSchema(r);
-      console.log('Enter the query, use TAB to auto-complete, Ctrl+Q to execute, Ctrl+C to cancel');
+      console.log('Enter the query, use TAB to auto-complete, Ctrl+Q / Enter to execute, Ctrl+C to cancel');
       inputLine();
     }, error => {
       terminate(error);
