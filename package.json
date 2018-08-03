@@ -38,7 +38,9 @@
   },
   "files": [
     "/bin",
-    "/src"
+    "/src",
+    "/src/graphiql/server.js",
+    "/src/graphiql/app/static/dist/*.{js,css}"
   ],
   "homepage": "https://github.com/hasura/graphqurl",
   "keywords": [
