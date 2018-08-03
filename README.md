@@ -52,6 +52,16 @@ gql>
 You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
 `Ctrl+Q` to execute the query.
 
+#### GraphiQL
+
+Open GraphiQL with a given endpoint:
+
+```bash
+$ gq <endpoint> -i
+```
+
+> This is a custom GraphiQL where you can specify request headers.
+
 #### Mutation
 
 Mutations with variables can be executed by providing the variables with `-v`
@@ -59,7 +69,7 @@ flag.
 
 ```bash
 gq \
-    <endpoint> \ 
+    <endpoint> \
     -v 'name=hasura' \
     -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
 ```
@@ -70,7 +80,7 @@ Subscriptions can be executed and the response is streamed on to stdout.
 
 ```bash
 gq \
-    <endpoint> \ 
+    <endpoint> \
     -q 'subscription { table { column } }'
 ```
 

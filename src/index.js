@@ -24,7 +24,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.graphiql) {
-      runGraphiQL(endpoint, queryString, headers, variables);
+      runGraphiQL(endpoint, queryString, headers, variables, flags.port);
       return;
     }
 
@@ -131,6 +131,12 @@ GraphqurlCommand.flags = {
   graphiql: flags.boolean({
     char: 'i',
     description: 'open graphiql with the given endpoint'
+  }),
+
+  // specify port to run graphiql at
+  port: flags.integer({
+    char: 'p',
+    descirption: 'port to run graphiql at (default 4500)'
   }),
 
   // headers, comma separated if they are many
