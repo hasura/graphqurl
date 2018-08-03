@@ -59,7 +59,7 @@ flag.
 
 ```bash
 gq \
-    <endpoint> \ 
+    <endpoint> \
     -v 'name=hasura' \
     -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
 ```
@@ -70,7 +70,7 @@ Subscriptions can be executed and the response is streamed on to stdout.
 
 ```bash
 gq \
-    <endpoint> \ 
+    <endpoint> \
     -q 'subscription { table { column } }'
 ```
 
@@ -101,7 +101,7 @@ $ gq ENDPOINT [-q QUERY]
 #### Using callbacks:
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 function successCallback(response, queryType, parsedQuery) {
   if (queryType === 'subscription') {
@@ -134,7 +134,7 @@ query(
 For queries and mutations,
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 query(
   {
@@ -151,7 +151,7 @@ query(
 For subscriptions,
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 query(
   {
@@ -206,7 +206,7 @@ query(
 Query example with variables
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 query(
   {
@@ -233,7 +233,7 @@ query(
 #### Mutations
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 query(
   {
@@ -265,7 +265,7 @@ query(
 Using promises,
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 const eventCallback = (event) => {
   console.log('Event received:', event);
@@ -301,7 +301,7 @@ query(
 Lets do the above subscription using callbacks,
 
 ```js
-const query = require('graphqurl');
+const { query } = require('graphqurl');
 
 function eventCallback(event) {
   console.log('Event received:', event);
