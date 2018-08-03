@@ -24,7 +24,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.graphiql) {
-      runGraphiQL(endpoint, queryString, headers, variables, flags.port);
+      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlAddress, flags.graphiqlPort);
       return;
     }
 
@@ -127,18 +127,6 @@ GraphqurlCommand.flags = {
     description: 'graphql query to execute',
   }),
 
-  // run graphiql
-  graphiql: flags.boolean({
-    char: 'i',
-    description: 'open graphiql with the given endpoint',
-  }),
-
-  // specify port to run graphiql at
-  port: flags.integer({
-    char: 'p',
-    descirption: 'port to run graphiql at (default 4500)',
-  }),
-
   // headers, comma separated if they are many
   header: flags.string({
     char: 'H',
@@ -168,6 +156,28 @@ GraphqurlCommand.flags = {
     char: 'n',
     description: 'name of the graphql definition to execute, use only if there are multiple definitions',
   }),
+
+  // run graphiql
+  graphiql: flags.boolean({
+    char: 'i',
+    description: 'open graphiql with the given endpoint, headers, query and variables',
+  }),
+
+  // specify port to run graphiql at
+  graphiqlAddress: flags.string({
+    char: 'a',
+    default: 'localhost',
+    description: 'address to use for graphiql',
+    dependsOn: ['graphiql'],
+  }),
+  // specify port to run graphiql at
+  graphiqlPort: flags.integer({
+    char: 'p',
+    default: 4500,
+    description: 'port to use for graphiql',
+    dependsOn: ['graphiql'],
+  }),
+
 };
 
 GraphqurlCommand.args = [

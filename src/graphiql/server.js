@@ -1,8 +1,8 @@
 const Express = require('express');
-const open = require('open');
+const opn = require('opn');
 const path = require('path');
 
-const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
+const runGraphiQL = (endpoint, query, headers, variables, address, port) => {
   const graphiqlHtml = `
 <html lang="en-us">
   <head>
@@ -66,9 +66,9 @@ const runGraphiQL = (endpoint, query, headers, variables, port = 4500) => {
     res.send(graphiqlHtml);
   });
 
-  app.listen(port, () => {
-    console.log(`GraphiQL running at http://localhost:${port}.`);
-    open(`http://localhost:${port}`);
+  app.listen(port, address, () => {
+    console.log(`GraphiQL running at http://${address}:${port}...`);
+    opn(`http://${address}:${port}`);
   });
 };
 
