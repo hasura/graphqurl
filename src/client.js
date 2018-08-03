@@ -1,6 +1,6 @@
 const query = require('./query.js');
 
-class GQClient {
+class Client {
   constructor(args) {
     this.endpoint = args.endpoint;
     this.headers = args.headers;
@@ -20,4 +20,4 @@ class GQClient {
   }
 }
 
-module.exports = GQClient;
+module.exports = Client;
