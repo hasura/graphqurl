@@ -29,6 +29,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (queryString === null) {
+      cli.action.start(`Introspecting ${endpoint}`);
       queryString = await getQueryFromTerminalUI(endpoint, headers);
     }
 

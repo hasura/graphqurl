@@ -1,5 +1,6 @@
 const tk = require('terminal-kit');
 const {introspectionQuery, buildClientSchema, parse} = require('graphql');
+const {cli} = require('cli-ux');
 const query = require('./query');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
@@ -105,7 +106,7 @@ term.on('key', async function (key) {
       });
 
       if (bStackACS.length > 0) {
-        acs.push(bStackACS[bStackACS.length - 1]);
+        acs.unshift(bStackACS[bStackACS.length - 1]);
       }
 
       mItems = acs;
@@ -141,6 +142,7 @@ const getQueryFromTerminalUI = (endpoint, headers)  => {
     gResolve = resolve;
     gReject = reject;
     query({endpoint: endpoint, query: introspectionQuery, headers: headers}, response => {
+      cli.action.stop('done');
       const r = response.data;
       // term.fullscreen(true);
       schema = buildClientSchema(r);
