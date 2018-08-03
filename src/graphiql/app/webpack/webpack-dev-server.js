@@ -3,10 +3,10 @@ const webpack = require('webpack');
 
 const webpackConfig = require('./dev.config');
 const compiler = webpack(webpackConfig);
-const hasuraConfig = require('../hasuraconfig');
+const appconfig = require('../appconfig');
 
-const host = hasuraConfig.hmrHost;
-const port = hasuraConfig.hmrPort;
+const host = appconfig.hmrHost;
+const port = appconfig.hmrPort;
 
 const serverOptions = {
   contentBase: 'http://' + host + ':' + port,

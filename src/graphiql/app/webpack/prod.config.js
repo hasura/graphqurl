@@ -3,7 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const CleanPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const hasuraConfig = require('../hasuraconfig');
+const appconfig = require('../appconfig');
 
 const relativeAssetsPath = '../static/dist';
 const assetsPath = path.join(__dirname, relativeAssetsPath);
@@ -32,7 +32,7 @@ module.exports = {
     path: assetsPath,
     filename: '[name].js',
     chunkFilename: '[name].js',
-    publicPath: hasuraConfig.webpackPrefix,
+    publicPath: appconfig.webpackPrefix,
   },
   module: {
     rules: [

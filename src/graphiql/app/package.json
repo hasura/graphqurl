@@ -1,14 +1,13 @@
 {
-  "name": "hasura-console",
-  "description": "Console for Hasura GraphQL Engine",
-  "author": "Hasura (https://github.com/hasura/graphql-engine)",
+  "name": "graphqurl-graphiql",
+  "description": "Explore GraphQL APIs with headers",
+  "author": "Hasura (https://github.com/hasura/graphqurl)",
   "license": "MIT",
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hasura/graphql-engine"
+    "url": "https://github.com/hasura/graphqurl"
   },
-  "homepage": "https://hasura.io/",
   "keywords": [],
   "scripts": {
     "start": "concurrently --kill-others \"npm run start-prod\"",
@@ -20,19 +19,8 @@
     "start-dev": "better-npm-run start-dev",
     "watch-client": "better-npm-run watch-client",
     "dev": "concurrently --kill-others \"npm run watch-client\" \"npm run start-dev\" ",
-    "precommit": "lint-staged",
     "cypress": "cypress open",
     "test": "cypress run --spec 'cypress/integration/test_complete.js' --config baseUrl=$CYPRESS_BASE_URL"
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ],
-    "*.{js,json,css,md}": [
-      "prettier --single-quote --trailing-comma es5 --write",
-      "git add"
-    ]
   },
   "betterScripts": {
     "start-prod": {
@@ -86,9 +74,6 @@
     "react-redux": "^5.0.6",
     "react-router": "^3.2.0",
     "react-router-redux": "^4.0.8",
-    "react-table": "^6.8.6",
-    "react-tabs": "^2.1.0",
-    "react-toggle": "^4.0.2",
     "redux": "^4.0.0",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
@@ -115,7 +100,6 @@
     "clean-webpack-plugin": "^0.1.17",
     "concurrently": "^3.5.0",
     "css-loader": "^0.28.11",
-    "cypress": "^3.0.1",
     "dotenv": "^5.0.1",
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "16.1.0",

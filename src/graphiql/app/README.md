@@ -7,13 +7,10 @@ We use [dotenv](https://github.com/motdotla/dotenv) for setting environment vari
 ```
 PORT=3000
 NODE_ENV=development
-DATA_API_URL=http://localhost:9000
-API_HOST=http://localhost
-API_PORT=9693
-ACCESS_KEY=abcd
-CONSOLE_MODE=cli
-DEV_DATA_API_URL=http://localhost:9000
-URL_PREFIX=/
+GRAPHQL_ENDPOINT=http://localhost:8090/v1alpha1/graphql
+HEADER_STRING={}
+VARIABLE_STRING={}
+QUERY_STRING='query { test_table { id } }'
 ```
 
 **Note**

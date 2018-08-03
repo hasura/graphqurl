@@ -5,9 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const assetsPath = path.resolve(__dirname, '../static/dist');
-const hasuraConfig = require('../hasuraconfig');
-const host = hasuraConfig.hmrHost;
-const port = hasuraConfig.hmrPort;
+const appconfig = require('../appconfig');
+const host = appconfig.hmrHost;
+const port = appconfig.hmrPort;
 
 const autoprefixer = require('autoprefixer');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
@@ -77,7 +77,7 @@ module.exports = {
     path: assetsPath,
     filename: '[name]-[hash].js',
     chunkFilename: '[name]-[chunkhash].js',
-    publicPath: 'http://' + host + ':' + port + hasuraConfig.webpackPrefix,
+    publicPath: 'http://' + host + ':' + port + appconfig.webpackPrefix,
   },
   module: {
     rules: [

@@ -83,7 +83,14 @@ class ApiRequest extends Component {
               styles.cursorNotAllowed
             }
           >
-            <div className={'input-group-btn ' + styles.inputGroupBtn}>
+            <div
+              className={
+                'input-group-btn ' +
+                styles.inputGroupBtn +
+                ' ' +
+                styles.cursorNotAllowed
+              }
+            >
               <button type="button" className={'btn btn-default'}>
                 POST
               </button>

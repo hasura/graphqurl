@@ -62,24 +62,9 @@ class App extends Component {
       notificationStyle.Containers.DefaultStyle.width = '800px';
     }
 
-    let hasuraCliDown = null;
-    if (connectionFailed) {
-      hasuraCliDown = (
-        <div
-          style={{ marginBottom: '0px' }}
-          className={styles.alertDanger + ' alert alert-danger'}
-        >
-          <strong>
-            Hey there! Can't reach your GraphQL endpoint
-          </strong>
-        </div>
-      );
-    }
-
     return (
       <ErrorBoundary>
         <div>
-          {hasuraCliDown}
           {ongoingRequest && (
             <ProgressBar
               percent={percent}

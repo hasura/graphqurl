@@ -32,13 +32,16 @@
   opacity: 0.1;
 }
 .panelInFocus {
-  
+
 }
 .requestInFocus {
-  
+
 }
 .cursorNotAllowed {
   cursor: not-allowed;
+  button {
+    cursor: not-allowed;
+  }
 }
 .apiExplorerWrapper
 {
@@ -770,4 +773,3 @@ label
 
 
 }
-
