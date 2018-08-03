@@ -1,7 +1,7 @@
 const query = require('./query');
 const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
-const CLIError = require('@oclif/errors');
+const {CLIError} = require('@oclif/errors');
 const fs = require('fs');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
