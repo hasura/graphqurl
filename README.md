@@ -1,6 +1,10 @@
 # GraphQURL
 
-cURL for GraphQL - CLI and JS library for making GraphQL queries
+curl for GraphQL:
+- CLI for making GraphQL queries with autocomplete
+- Run GraphiQL locally against any endpoint
+- Use as a library with nodejs or from the browser
+- Supports subscriptions
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
