@@ -1,7 +1,7 @@
 {
   "name": "graphqurl",
   "description": "cURL for GraphQL - CLI and JS library for making GraphQL queries",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "author": "Hasura",
   "bin": {
     "gq": "./bin/run",
@@ -62,5 +62,7 @@
     "prepublish": "npm run build-graphiql",
     "test": "node test/index.test.js && node test/clearstate.test.js"
   },
-  "pre-commit": ["eslintfix"]
+  "pre-commit": [
+    "eslintfix"
+  ]
 }
