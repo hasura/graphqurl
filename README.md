@@ -371,4 +371,5 @@ Executing only a particular named query from a file that contains many queries:
 gq <endpoint> --queryFile ./queries.gql --name getItems
 ```
 
+<br>
 <sup><b>Maintained with ♡♡love♡♡ by <a href="https://hasura.io">Hasura</a></b></sup>
