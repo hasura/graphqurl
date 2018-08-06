@@ -38,7 +38,6 @@ can quickly merge or address your contributions.
 
 ## Testing
 
-- Pull requests will be merged only if they pass the tests.
 - Please make sure that your code is linted as per the rules in the project. To run an ESLint check, run `npm run eslint` from the root of the project.
 - To run the tests locally, you will need to have a [Hasura GraphQL engine](https://github.com/hasura/graphql-engine) URL. You can run the tests locally by passing the GraphQL Engine URL and the access key to the `npm test` command.
 
