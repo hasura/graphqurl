@@ -1,4 +1,4 @@
-# Graphqurl
+# graphqurl
 
 curl for GraphQL:
 - CLI for making GraphQL queries with autocomplete
