@@ -3,6 +3,7 @@ const {Command, flags} = require('@oclif/command');
 const {cli} = require('cli-ux');
 const {CLIError} = require('@oclif/errors');
 const fs = require('fs');
+const url = require('url');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const getQueryFromTerminalUI = require('./ui');
@@ -21,6 +22,11 @@ class GraphqurlCommand extends Command {
 
     if (endpoint === null) {
       throw new CLIError('endpoint is required: `gq <endpoint>`');
+    }
+
+    const parsedEndpoint = url.parse(endpoint);
+    if (!(parsedEndpoint.protocol && parsedEndpoint.host)) {
+      throw new CLIError('endpoint is not a valid url');
     }
 
     if (flags.graphiql) {
@@ -213,7 +219,6 @@ GraphqurlCommand.flags = {
     default: false,
     description: 'show output in a single line, do not prettify',
   }),
-
 
 };
 
