@@ -16,8 +16,11 @@ curl for GraphQL:
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
 ----------------
-![Graphqurl Demo](assets/subscriptions.gif)
+![Graphqurl Demo](assets/subscription.gif)
+---
 ![GraphiQL Demo](assets/graphiql.gif)
+---
+![Simple Query Demo](assets/simple-query.gif)
 ----------------
 
 ## Installation
