@@ -15,11 +15,6 @@ curl for GraphQL:
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE.md)
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
-----------------
-![Graphqurl Demo](assets/subscriptions.gif)
-![GraphiQL Demo](assets/graphiql.gif)
-----------------
-
 ## Installation
 
 ### CLI
