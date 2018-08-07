@@ -1,4 +1,4 @@
-# GraphQURL
+# graphqurl
 
 curl for GraphQL:
 - CLI for making GraphQL queries with autocomplete
@@ -11,22 +11,22 @@ curl for GraphQL:
 
 [![CircleCI](https://circleci.com/gh/hasura/graphqurl/tree/master.svg?style=shield)](https://circleci.com/gh/hasura/graphqurl/tree/master)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/hasura/graphqurl?branch=master&svg=true)](https://ci.appveyor.com/project/hasura-bot/graphqurl/branch/master)
-[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE.md)
+<!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
 ## Installation
 
 ### CLI
 
 ```bash
-$ npm install -g graphqurl
+npm install -g graphqurl
 ```
 
 ### Node Library
 
 ```bash
-$ npm install --save graphqurl
+npm install --save graphqurl
 ```
 
 ## Usage
@@ -36,8 +36,7 @@ $ npm install --save graphqurl
 #### Query
 
 ```bash
-gq \
-     https://my-graphql-endpoint/graphql \
+gq https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
      -q 'query { table { column } }'
 ```
@@ -54,14 +53,14 @@ gql>
 ```
 
 You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
-`Ctrl+Q` to execute the query.
+`Ctrl+Q`/`Enter` to execute  the query.
 
 #### GraphiQL
 
 Open GraphiQL with a given endpoint:
 
 ```bash
-$ gq <endpoint> -i
+gq <endpoint> -i
 ```
 
 > This is a custom GraphiQL where you can specify request headers.
@@ -72,10 +71,9 @@ Mutations with variables can be executed by providing the variables with `-v`
 flag.
 
 ```bash
-gq \
-    <endpoint> \
-    -v 'name=hasura' \
-    -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
+gq <endpoint> \
+   -v 'name=hasura' \
+   -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
 ```
 
 #### Subscription
@@ -83,9 +81,8 @@ gq \
 Subscriptions can be executed and the response is streamed on to stdout.
 
 ```bash
-gq \
-    <endpoint> \
-    -q 'subscription { table { column } }'
+gq <endpoint> \
+   -q 'subscription { table { column } }'
 ```
 
 ### Command
@@ -344,7 +341,7 @@ query(
 );
 ```
 
-### CLI tool
+### CLI
 
 Generic example:
 
@@ -375,5 +372,5 @@ Executing only a particular named query from a file that contains many queries:
 gq <endpoint> --queryFile ./queries.gql --name getItems
 ```
 
-<br>
-<sup><b>Maintained with ♡♡love♡♡ by <a href="https://hasura.io">Hasura</a></b></sup>
+---
+Maintained with ♡ by <a href="https://hasura.io">Hasura</a>
