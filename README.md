@@ -20,7 +20,7 @@ curl for GraphQL:
 ---
 ![GraphiQL Demo](assets/graphiql.gif)
 ---
-![Simple Query Demo](assets/simple-query.gif)
+![Subscriptions triggering bash](assets/bash_trigger.gif)
 ----------------
 
 ## Installation
