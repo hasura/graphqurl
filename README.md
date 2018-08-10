@@ -1,6 +1,6 @@
 # graphqurl
 
-curl for GraphQL:
+Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like CLI for GraphQL:
 - CLI for making GraphQL queries with autocomplete
 - Run GraphiQL locally against any endpoint
 - Use as a library with nodejs or from the browser
