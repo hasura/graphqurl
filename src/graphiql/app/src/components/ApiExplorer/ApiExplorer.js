@@ -37,7 +37,7 @@ class ApiExplorer extends Component {
 
     return (
       <div className={'container-fluid ' + styles.padd_remove}>
-        <Helmet title="API Explorer | Hasura" />
+        <Helmet title="GraphiQL" />
         <div className={wrapperClass}>{requestWrapper}</div>
       </div>
     );
