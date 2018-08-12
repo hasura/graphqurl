@@ -16,8 +16,6 @@ const UNFOCUS_ROLE_HEADER = 'ApiExplorer/UNFOCUS_ROLE_HEADER';
 
 import { getHeadersAsJSON } from './utils';
 
-import { saveAppState, clearState } from '../AppState.js';
-
 const focusHeaderTextbox = () => ({ type: FOCUS_ROLE_HEADER });
 const unfocusTypingHeader = () => ({ type: UNFOCUS_ROLE_HEADER });
 

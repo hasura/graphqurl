@@ -30,6 +30,16 @@ class GraphiQLWrapper extends Component {
         this.props.data.headers
       );
     };
+    const graphiqlProps = {
+      fetcher: graphQLFetcher
+    };
+    if (query) {
+      graphiqlProps.query = query;
+    }
+    if (variables) {
+      graphiqlProps.variables = variables;
+    }
+    console.log(graphiqlProps);
     return (
       <ErrorBoundary>
         <div
@@ -40,11 +50,7 @@ class GraphiQLWrapper extends Component {
             styles.graphQLHeight
           }
         >
-          <GraphiQL
-            fetcher={graphQLFetcher}
-            query={query}
-            variables={JSON.stringify(variables, null, 2)}
-          />
+          <GraphiQL {...graphiqlProps} />
         </div>
       </ErrorBoundary>
     );

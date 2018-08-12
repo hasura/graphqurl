@@ -3,12 +3,10 @@ import PropTypes from 'prop-types';
 
 import {
   changeRequestParams,
-  sendExplorerReq,
   addRequestHeader,
   changeRequestHeader,
   removeRequestHeader,
   updateFileObject,
-  editGeneratedJson,
   focusHeaderTextbox,
   unfocusTypingHeader,
 } from './Actions';
@@ -61,8 +59,6 @@ class ApiRequest extends Component {
   }
 
   getUrlBar() {
-    const { explorerData, bodyType } = this.props;
-
     return (
       <div
         id="stickyHeader"

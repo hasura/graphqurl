@@ -11,10 +11,7 @@ const defaultHeader = [
 ];
 
 if (existingHeaders) {
-  console.log(existingHeaders)
   Object.keys(existingHeaders).forEach((key) => {
-    console.log(key);
-    console.log(existingHeaders[key]);
     defaultHeader.push({
       key,
       value: existingHeaders[key],
