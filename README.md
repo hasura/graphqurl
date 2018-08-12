@@ -1,9 +1,9 @@
 # graphqurl
 
-curl for GraphQL:
+Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like CLI for GraphQL:
 - CLI for making GraphQL queries with autocomplete
 - Run GraphiQL locally against any endpoint
-- Use as a library with nodejs or from the browser
+- Use as a library with Node.js or from the browser
 - Supports subscriptions
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
@@ -14,6 +14,14 @@ curl for GraphQL:
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE.md)
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
+
+----------------
+![Graphqurl Demo](assets/subscription.gif)
+---
+![GraphiQL Demo](assets/graphiql.gif)
+---
+![Subscriptions triggering bash](assets/bash_trigger.gif)
+----------------
 
 ## Installation
 
@@ -53,7 +61,7 @@ gql>
 ```
 
 You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
-`Ctrl+Q`/`Enter` to execute  the query.
+`Ctrl+Q`/`Enter` to execute the query.
 
 #### GraphiQL
 
@@ -63,7 +71,7 @@ Open GraphiQL with a given endpoint:
 gq <endpoint> -i
 ```
 
-> This is a custom GraphiQL where you can specify request headers.
+> This is a custom GraphiQL where you can specify request's headers.
 
 #### Mutation
 
