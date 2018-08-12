@@ -31,15 +31,12 @@ class GraphiQLWrapper extends Component {
       );
     };
     const graphiqlProps = {
-      fetcher: graphQLFetcher
+      fetcher: graphQLFetcher,
     };
-    if (query) {
+    if (query || Object.keys(variables).length !== 0) {
       graphiqlProps.query = query;
+      graphiqlProps.variables = JSON.stringify(variables, null, 2);
     }
-    if (variables) {
-      graphiqlProps.variables = variables;
-    }
-    console.log(graphiqlProps);
     return (
       <ErrorBoundary>
         <div
