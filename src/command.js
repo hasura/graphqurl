@@ -55,7 +55,7 @@ class GraphqurlCommand extends Command {
     const errorCallback = (error, queryType, parsedQuery) => {
       queryErrorCb(this, error, queryType, parsedQuery);
     };
-    cli.action.start(`Executing on ${endpoint}`);
+    cli.action.start(`Executing query`);
     await query(queryOptions, successCallback, errorCallback);
   }
 
