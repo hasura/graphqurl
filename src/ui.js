@@ -141,6 +141,7 @@ const getQueryFromTerminalUI = (endpoint, headers)  => {
   return new Promise((resolve, reject) => {
     gResolve = resolve;
     gReject = reject;
+    cli.action.start('Introspecting schema');
     query({endpoint: endpoint, query: introspectionQuery, headers: headers}, response => {
       cli.action.stop('done');
       const r = response.data;
