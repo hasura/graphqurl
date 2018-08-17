@@ -153,8 +153,7 @@ gq https://my-graphql-endpoint \\
    -l -q 'subscription { table { column } }'
 
 # Export GraphQL schema from an endpoint
-gq https://my-graphql-endpoint \\
-   --introspect > schema.graphql
+gq https://my-graphql-endpoint --introspect > schema.gql
 `;
 
 GraphqurlCommand.usage = 'ENDPOINT [-q QUERY]';
@@ -234,7 +233,8 @@ GraphqurlCommand.flags = {
     description: 'introspect the endpoint and get schema',
   }),
 
-  schemaFormat: flags.string({
+  format: flags.string({
+    description: 'output format for graphql schema after introspection',
     default: 'graphql',
     options: ['json', 'graphql'],
   }),

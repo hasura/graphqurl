@@ -10,7 +10,7 @@ const querySuccessCb = (ctx, response, queryType) => {
     cli.action.start('Waiting');
   } else {
     if (ctx.flags.introspect) {
-      if (ctx.flags.schemaFormat === 'graphql') {
+      if (ctx.flags.format === 'graphql') {
         const schema = buildClientSchema(response.data);
         out = printSchema(schema);
       } else {
