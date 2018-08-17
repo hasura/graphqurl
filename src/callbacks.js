@@ -9,9 +9,13 @@ const querySuccessCb = (ctx, response, queryType) => {
     ctx.log(out);
     cli.action.start('Waiting');
   } else {
-    if (ctx.flags.introspect && (ctx.flags.schemaFormat === 'graphql')) {
-      const schema = buildClientSchema(response.data);
-      out = printSchema(schema);
+    if (ctx.flags.introspect) {
+      if (ctx.flags.schemaFormat === 'graphql') {
+        const schema = buildClientSchema(response.data);
+        out = printSchema(schema);
+      } else {
+        out = ctx.flags.singleLine ? JSON.stringify(response.data) : JSON.stringify(response.data, null, 2);
+      }
     }
     cli.action.stop('done');
     ctx.log(out);
