@@ -5,6 +5,7 @@ Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like C
 - Run GraphiQL locally against any endpoint
 - Use as a library with Node.js or from the browser
 - Supports subscriptions
+- Export GraphQL schema
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
@@ -91,6 +92,17 @@ Subscriptions can be executed and the response is streamed on to stdout.
 ```bash
 gq <endpoint> \
    -q 'subscription { table { column } }'
+```
+
+#### Export schema
+
+Export GraphQL schema to GraphQL or JSON format:
+
+```bash
+gq <endpoint> --introspect > schema.graphql
+
+# json
+gq <endpoint> --introspect --format json > schema.json
 ```
 
 ### Command

@@ -8,6 +8,7 @@ const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const getQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
+const {introspectionQuery} = require('graphql');
 
 // Convert fs.readFile into Promise version of same
 const readFile = util.promisify(fs.readFile);
@@ -32,6 +33,10 @@ class GraphqurlCommand extends Command {
     if (flags.graphiql) {
       runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlAddress, flags.graphiqlPort);
       return;
+    }
+
+    if (flags.introspect) {
+      queryString = introspectionQuery;
     }
 
     if (queryString === null) {
@@ -146,6 +151,9 @@ gq https://my-graphql-endpoint \\
 # Execute a live query (print each event line by line)
 gq https://my-graphql-endpoint \\
    -l -q 'subscription { table { column } }'
+
+# Export GraphQL schema from an endpoint
+gq https://my-graphql-endpoint --introspect > schema.gql
 `;
 
 GraphqurlCommand.usage = 'ENDPOINT [-q QUERY]';
@@ -220,6 +228,16 @@ GraphqurlCommand.flags = {
     description: 'show output in a single line, do not prettify',
   }),
 
+  introspect: flags.boolean({
+    default: false,
+    description: 'introspect the endpoint and get schema',
+  }),
+
+  format: flags.string({
+    description: 'output format for graphql schema after introspection',
+    default: 'graphql',
+    options: ['json', 'graphql'],
+  }),
 };
 
 GraphqurlCommand.args = [
