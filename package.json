@@ -20,6 +20,7 @@
     "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
     "express": "^4.16.3",
+    "express-http-proxy": "^1.2.0",
     "graphql": "0.9.1",
     "graphql-language-service-interface": "^1.2.2",
     "graphql-language-service-utils": "^1.2.2",
