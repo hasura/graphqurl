@@ -1,5 +1,5 @@
 const throwError = err => {
-  console.log('Error: ', err);
+  console.error('Error: ', err);
   process.exit(1);
 };
 
