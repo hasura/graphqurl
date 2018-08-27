@@ -1,15 +1,19 @@
 const Express = require('express');
 const opn = require('opn');
 const path = require('path');
+const proxy = require('express-http-proxy');
 
 const runGraphiQL = (endpoint, query, headers, variables, address, port) => {
+  const endpointParts = endpoint.match(/((https?:\/\/)?[^/]+)(\/.*)/);
+  const endpointHost = endpointParts[1];
+  const endpointPath = endpointParts[3];
   const graphiqlHtml = `
 <html lang="en-us">
   <head>
     <link rel="icon" type="image/png" href="./favicon.png" />
     <script>
      window.__env = {
-       graphqlEndpoint: "${endpoint}",
+       graphqlEndpoint: "${endpointPath}",
        headers: ${JSON.stringify(headers)},
        variables: ${JSON.stringify(variables)},
        query: \`${query || ''}\`
@@ -65,6 +69,12 @@ const runGraphiQL = (endpoint, query, headers, variables, address, port) => {
   app.get('/', (req, res) => {
     res.send(graphiqlHtml);
   });
+
+  app.use('/', proxy(endpointHost, {
+    filter(req, _) {
+      return req.method === 'POST';
+    },
+  }));
 
   app.listen(port, address, () => {
     console.log(`GraphiQL running at http://${address}:${port} ...`);
