@@ -136,12 +136,12 @@ gq https://my-graphql-endpoint -i
 
 # Add a custom header
 gq https://my-graphql-endpoint \\
-   -H 'Authorizaion: token token-value' \\
+   -H 'Authorization: token token-value' \\
    -q 'query { table { column } }'
 
 # Execute a mutation with variables
 gq https://my-graphql-endpoint \\
-   -q 'muatation { insert_table(objects:[{ column: $var }]) { returning { column } } }' \\
+   -q 'mutation { insert_table(objects:[{ column: $var }]) { returning { column } } }' \\
    -v 'var=abcd'
 
 # Execute a live query (prints out each event data to stdout)
