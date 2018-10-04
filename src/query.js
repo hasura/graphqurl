@@ -7,6 +7,22 @@ const {makeObservable} = require('./utils');
 
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;
+
+  const fetchQuery = function () {
+    return fetch(`${endpoint}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        operationName: name,
+        query: query,
+        variables,
+      }),
+      headers: {
+        ...headers,
+        'content-type': 'application/json',
+      },
+    }).then(res => res.json());
+  };
+
   const client = new ApolloClient({
     link: new HttpLink({uri: endpoint, fetch: fetch}),
     cache: new InMemoryCache(),
@@ -73,13 +89,7 @@ const query = async function (options, successCb, errorCb) {
   let q;
   try {
     if (queryType === 'query') {
-      q = client.query({
-        query: input,
-        variables,
-        context: {
-          headers,
-        },
-      });
+      q = fetchQuery();
     } else if (queryType === 'mutation') {
       q = client.mutate({
         mutation: input,
