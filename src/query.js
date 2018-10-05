@@ -1,7 +1,5 @@
-// const {HttpLink} = require('apollo-link-http');
-// const {ApolloClient} = require('apollo-client');
+
 const fetch = require('node-fetch');
-// const {InMemoryCache} = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
 const {makeObservable} = require('./utils');
 
@@ -22,11 +20,6 @@ const query = async function (options, successCb, errorCb) {
       },
     }).then(res => res.json());
   };
-
-  // const client = new ApolloClient({
-  //   link: new HttpLink({uri: endpoint, fetch: fetch}),
-  //   cache: new InMemoryCache(),
-  // });
 
   let input, queryType;
   try {
