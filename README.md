@@ -117,7 +117,7 @@ $ gq ENDPOINT [-q QUERY]
 
 #### Options
 
-- `-q, --query=query`: graphql query to exxecute
+- `-q, --query=query`: graphql query to execute
 - `-H, --header="key:value"`: request header
 - `-v, --variable="key=value"`: variables used in the query
 - `-n, --name=name`: name of the graphql definition to execute, use only if there are multiple definitions
@@ -157,7 +157,7 @@ query(
       'x-access-key': 'mysecretxxx',
     }
   },
-  successCalllback,
+  successCallback,
   errorCallback
 );
 
@@ -224,11 +224,11 @@ query(
   - name: [String] Operation name. Used only if the `query` string contains multiple operations.
 - **successCallback**: [Function] Success callback which is called after a successful response. It is called with the following parameters:
   - response: The response of your query
-  - queryType: The type of query you made i.e. one [`query`, `mutation`, `subcription`]
+  - queryType: The type of query you made i.e. one [`query`, `mutation`, `subscription`]
   - parsedQuery: The query parsed into a GraphQL document
-- **errorCallback**: [Function] Error callback which is called after a the occurance of an error. It is called with the following parameters:
-  - error: The occured error
-  - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subcription`]
+- **errorCallback**: [Function] Error callback which is called after a the occurrence of an error. It is called with the following parameters:
+  - error: The occurred error
+  - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subscription`]
   - parsedQuery: [Object] The query parsed into a GraphQL document
 - **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
   - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example](#subscriptions) to see how to subscribe to observables.
