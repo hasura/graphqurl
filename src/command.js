@@ -40,7 +40,14 @@ class GraphqurlCommand extends Command {
     }
 
     if (queryString === null) {
-      queryString = await getQueryFromTerminalUI(endpoint, headers);
+      queryString = await getQueryFromTerminalUI(endpoint, headers)
+      .catch(error => {
+        if (error && error.networkError && error.networkError) {
+          throw new CLIError('Schema introspection failed. Make sure endpoint is an url to a graphql schema');
+        }
+
+        throw error;
+      });
     }
 
     const queryOptions = {
