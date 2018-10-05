@@ -1,15 +1,15 @@
-const {HttpLink} = require('apollo-link-http');
-const {ApolloClient} = require('apollo-client');
+// const {HttpLink} = require('apollo-link-http');
+// const {ApolloClient} = require('apollo-client');
 const fetch = require('node-fetch');
-const {InMemoryCache} = require('apollo-cache-inmemory');
+// const {InMemoryCache} = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
 const {makeObservable} = require('./utils');
 
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;
 
-  const fetchQuery = function () {
-    return fetch(`${endpoint}`, {
+  const fetchGraphQlRequest = function () {
+    return fetch(endpoint, {
       method: 'POST',
       body: JSON.stringify({
         operationName: name,
@@ -23,10 +23,10 @@ const query = async function (options, successCb, errorCb) {
     }).then(res => res.json());
   };
 
-  const client = new ApolloClient({
-    link: new HttpLink({uri: endpoint, fetch: fetch}),
-    cache: new InMemoryCache(),
-  });
+  // const client = new ApolloClient({
+  //   link: new HttpLink({uri: endpoint, fetch: fetch}),
+  //   cache: new InMemoryCache(),
+  // });
 
   let input, queryType;
   try {
@@ -88,18 +88,10 @@ const query = async function (options, successCb, errorCb) {
   }
   let q;
   try {
-    if (queryType === 'query') {
-      q = fetchQuery();
-    } else if (queryType === 'mutation') {
-      q = client.mutate({
-        mutation: input,
-        variables,
-        context: {
-          headers,
-        },
-      });
-    } else if (queryType === 'subscription') {
+    if (queryType === 'subscription') {
       q = makeObservable(input, variables, endpoint, headers, errorCb);
+    } else {
+      q = fetchGraphQlRequest();
     }
   } catch (err) {
     // console.log(err);
