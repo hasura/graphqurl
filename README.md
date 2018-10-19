@@ -13,7 +13,7 @@ Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like C
 [![CircleCI](https://circleci.com/gh/hasura/graphqurl/tree/master.svg?style=shield)](https://circleci.com/gh/hasura/graphqurl/tree/master)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/hasura/graphqurl?branch=master&svg=true)](https://ci.appveyor.com/project/hasura-bot/graphqurl/branch/master)
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
-[![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE.md)
+[![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE)
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
 ----------------
@@ -226,7 +226,7 @@ query(
   - response: The response of your query
   - queryType: The type of query you made i.e. one [`query`, `mutation`, `subscription`]
   - parsedQuery: The query parsed into a GraphQL document
-- **errorCallback**: [Function] Error callback which is called after a the occurrence of an error. It is called with the following parameters:
+- **errorCallback**: [Function] Error callback which is called after the occurrence of an error. It is called with the following parameters:
   - error: The occurred error
   - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subscription`]
   - parsedQuery: [Object] The query parsed into a GraphQL document
@@ -393,4 +393,4 @@ gq <endpoint> --queryFile ./queries.gql --name getItems
 ```
 
 ---
-Maintained with ♡ by <a href="https://hasura.io">Hasura</a>
+Maintained with :heart: by <a href="https://hasura.io">Hasura</a>
