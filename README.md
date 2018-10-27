@@ -392,5 +392,9 @@ Executing only a particular named query from a file that contains many queries:
 gq <endpoint> --queryFile ./queries.gql --name getItems
 ```
 
+## License
+
+  Licensed under the [![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE)
+
 ---
 Maintained with :heart: by <a href="https://hasura.io">Hasura</a>
