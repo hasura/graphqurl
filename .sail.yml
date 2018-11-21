@@ -1,0 +1,37 @@
+tasks:
+  install:
+    image: node:8-alpine
+    command:
+      - npm
+    args:
+      - install
+  test:
+    dependencies:
+      postgres:
+        image: postgres:10-alpine
+        env:
+          - POSTGRES_USER: gql_test
+          - POSTGRES_DB: gql_test
+        ports:
+          - 5432
+      hasura:
+        image: hasura/graphql-engine
+        command:
+          - graphql-engine
+        args:
+          - serve
+        env:
+          - HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@$(SAIL_HOST_POSTGRES):5432/gql_test
+          - HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
+        ports:
+          - 8080
+    image: node:8-alpine
+    command:
+      - npm
+    args:
+      - test
+    env:
+      - GRAPHQURL_TEST_GRAPHQL_ENGINE_URL: http://$(SAIL_HOST_HASURA):8080
+      - GRAPHQURL_TEST_X_HASURA_ACCESS_KEY: verysecretaccesskey
+
+

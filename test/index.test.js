@@ -65,9 +65,11 @@ const runTests = async () => {
   await testSubscriptionCallback();
 };
 
-try {
-  runTests();
-} catch (e) {
-  console.log(e);
-}
-
+(async () => {
+  try {
+    await runTests();
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+})();
