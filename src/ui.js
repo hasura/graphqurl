@@ -15,6 +15,7 @@ let ib;
 let qReady = false;
 let schema;
 let menuOn = false;
+let exit = false;
 let gResolve, gReject;
 
 const terminate = error => {
@@ -57,6 +58,7 @@ term.on('key', async function (key) {
 
   if (qReady) {
     if (key === 'CTRL_Q') {
+      // exit = true;
       qs = ib.getInput();
       ib.abort();
       terminate();
@@ -137,22 +139,34 @@ term.on('key', async function (key) {
   }
 });
 
-const getQueryFromTerminalUI = (endpoint, headers)  => {
+const getQueryFromTerminalUI = ()  => {
   return new Promise((resolve, reject) => {
     gResolve = resolve;
     gReject = reject;
-    cli.action.start('Introspecting schema');
-    query({endpoint: endpoint, query: introspectionQuery, headers: headers}, response => {
-      cli.action.stop('done');
-      const r = response.data;
-      // term.fullscreen(true);
-      schema = buildClientSchema(r);
-      console.log('Enter the query, use TAB to auto-complete, Ctrl+Q / Enter to execute, Ctrl+C to cancel');
-      inputLine();
-    }, error => {
-      terminate(error);
-    });
+    inputLine();
   });
 };
 
-module.exports = getQueryFromTerminalUI;
+const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
+  const {
+    endpoint,
+    headers,
+  } = queryOptions;
+  cli.action.start('Introspecting schema');
+  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers});
+  cli.action.stop('done');
+  const r = schemaResponse.data;
+  // term.fullscreen(true);
+  schema = buildClientSchema(r);
+  console.log('Enter the query, use TAB to auto-complete, Ctrl+Q / Enter to execute, Ctrl+C to cancel');
+
+  /* eslint-disable-next-line no-unmodified-loop-condition */
+  while (!exit) {
+    /* eslint-disable-next-line no-await-in-loop */
+    const queryString = await getQueryFromTerminalUI();
+    /* eslint-disable-next-line no-await-in-loop */
+    await query(Object.assign({}, queryOptions, {query: queryString}), successCb, errorCb);
+  }
+};
+
+module.exports = executeQueryFromTerminalUI;

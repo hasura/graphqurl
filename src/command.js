@@ -6,7 +6,7 @@ const fs = require('fs');
 const url = require('url');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
-const getQueryFromTerminalUI = require('./ui');
+const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
 const {introspectionQuery} = require('graphql');
 
@@ -39,8 +39,24 @@ class GraphqurlCommand extends Command {
       queryString = introspectionQuery;
     }
 
+    this.args = args;
+    this.flags = flags;
+
+    const successCallback = (response, queryType, parsedQuery) => {
+      querySuccessCb(this, response, queryType, parsedQuery, endpoint);
+    };
+    const errorCallback = (error, queryType, parsedQuery) => {
+      queryErrorCb(this, error, queryType, parsedQuery);
+    };
+
     if (queryString === null) {
-      queryString = await getQueryFromTerminalUI(endpoint, headers);
+      queryString = await executeQueryFromTerminalUI({
+        endpoint: endpoint,
+        headers,
+        variables,
+        name: flags.name,
+      }, successCallback, errorCallback);
+      return;
     }
 
     const queryOptions = {
@@ -51,15 +67,6 @@ class GraphqurlCommand extends Command {
       name: flags.name,
     };
 
-    this.args = args;
-    this.flags = flags;
-
-    const successCallback = (response, queryType, parsedQuery) => {
-      querySuccessCb(this, response, queryType, parsedQuery, endpoint);
-    };
-    const errorCallback = (error, queryType, parsedQuery) => {
-      queryErrorCb(this, error, queryType, parsedQuery);
-    };
     cli.action.start('Executing query');
     await query(queryOptions, successCallback, errorCallback);
   }
