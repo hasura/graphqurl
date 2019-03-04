@@ -100,9 +100,30 @@ class GraphqurlCommand extends Command {
   }
 
   async getQueryVariables(args, flags) {
+    let possibleFlags = [
+      flags.variable,
+      flags.variablesFile,
+      flags.variablesJSON
+    ];
+    let flagsCount = 0;
+    for (const f of possibleFlags) { if (f) { flagsCount += 1; }; }
+    if (flagsCount > 1) {
+      this.error('cannot use flags --variable, --variablesFile, --variablesJSON together');
+    }
     let variablesObject = {};
+    if (flags.variablesJSON) {
+      try {
+        variablesObject = JSON.parse(flags.variablesJSON);
+      } catch (err) {
+        this.error(`error parsing --variablesJSON: ${err}`);
+      }
+    }
     if (flags.variablesFile) {
-      variablesObject = JSON.parse(await readFile(flags.variablesFile));
+      try {
+        variablesObject = JSON.parse(await readFile(flags.variablesFile));
+      } catch (err) {
+        this.error(`error reading and parsing --variablesFile: ${err}`);
+      }
     }
     if (flags.variable) {
       for (let v of flags.variable) {
@@ -110,7 +131,13 @@ class GraphqurlCommand extends Command {
         if (parts.length !== 2) {
           this.error(`cannot parse variable '${v} (multiple '=')`);
         }
-        variablesObject[parts[0].trim()] = parts[1].trim();
+        var val = parts[1].trim();
+        try {
+          val = JSON.parse(val);
+        } catch (err) {
+          // cannot parse as JSON. do nothing, proceed with raw value
+        }
+        variablesObject[parts[0].trim()] = val;
       }
     }
     return variablesObject;
@@ -181,8 +208,15 @@ GraphqurlCommand.flags = {
   // variables for the query
   variable: flags.string({
     char: 'v',
-    description: 'variables used in the query',
+    description: 'variables used in the query as key=value',
     multiple: true,
+  }),
+
+  // variables for the query as JSON
+  variablesJSON: flags.string({
+    char: 'j',
+    description: 'variables used in the query as JSON key:value pairs',
+    multiple: false,
   }),
 
   // file to read query from
