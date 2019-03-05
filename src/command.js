@@ -208,14 +208,14 @@ GraphqurlCommand.flags = {
   // variables for the query
   variable: flags.string({
     char: 'v',
-    description: 'variables used in the query as key=value',
+    description: 'query variables as key=value',
     multiple: true,
   }),
 
   // variables for the query as JSON
   variablesJSON: flags.string({
     char: 'j',
-    description: 'variables used in the query as JSON key:value pairs',
+    description: 'query variables as JSON string',
     multiple: false,
   }),
 
@@ -226,7 +226,7 @@ GraphqurlCommand.flags = {
 
   // file to read variables from
   variablesFile: flags.string({
-    description: 'file to read the variables from',
+    description: 'file to read the query variables from (JSON file)',
   }),
 
   // name of the query/mutation/subscription to execute
