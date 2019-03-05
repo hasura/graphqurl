@@ -103,10 +103,14 @@ class GraphqurlCommand extends Command {
     let possibleFlags = [
       flags.variable,
       flags.variablesFile,
-      flags.variablesJSON
+      flags.variablesJSON,
     ];
     let flagsCount = 0;
-    for (const f of possibleFlags) { if (f) { flagsCount += 1; }; }
+    for (const f of possibleFlags) {
+      if (f) {
+        flagsCount += 1;
+      }
+    }
     if (flagsCount > 1) {
       this.error('cannot use flags --variable, --variablesFile, --variablesJSON together');
     }
