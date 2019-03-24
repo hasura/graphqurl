@@ -4,17 +4,15 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 resources:
   containers:
+  - container: nodejs
+    image: node:8-alpine
   - container: postgres
     image: postgres:10-alpine
-    ports:
-    - 5432:5432
     env:
       POSTGRES_USER: gql_test
       POSTGRES_DB: gql_test
   - container: hasura
     image: hasura/graphql-engine:latest
-    ports:
-    - 8080:8080
     env:
       HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@postgres:5432/gql_test
       HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
@@ -29,14 +27,12 @@ trigger:
 pool:
   vmImage: 'Ubuntu-16.04'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '8.x'
-  displayName: 'Install Node.js'
+container: nodejs
 
+steps:
 - script: |
     export GRAPHQURL_TEST_GRAPHQL_ENGINE_URL=http://hasura:8080
     export GRAPHQURL_TEST_X_HASURA_ACCESS_KEY=verysecretaccesskey
     npm install
     npm test
+    
