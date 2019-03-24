@@ -1,0 +1,38 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+resources:
+  containers:
+  - container: nodejs
+    image: node:8
+  - container: postgres
+    image: postgres:10-alpine
+    env:
+      POSTGRES_USER: gql_test
+      POSTGRES_DB: gql_test
+  - container: hasura
+    image: hasura/graphql-engine:latest
+    env:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@postgres:5432/gql_test
+      HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
+
+services:
+  postgres: postgres
+  hasura: hasura
+  
+trigger:
+- master
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+container: nodejs
+
+steps:
+- script: |
+    export GRAPHQURL_TEST_GRAPHQL_ENGINE_URL=http://hasura:8080
+    export GRAPHQURL_TEST_X_HASURA_ACCESS_KEY=verysecretaccesskey
+    npm install
+    npm test
+    
