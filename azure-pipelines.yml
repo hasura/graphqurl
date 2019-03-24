@@ -16,7 +16,7 @@ resources:
     ports:
     - 8080:8080
     env:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@localhost:5432/gql_test
+      HASURA_GRAPHQL_DATABASE_URL: postgres://gql_test:@postgres:5432/gql_test
       HASURA_GRAPHQL_ACCESS_KEY: verysecretaccesskey
 
 services:
@@ -36,7 +36,7 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
-    export GRAPHQURL_TEST_GRAPHQL_ENGINE_URL=http://localhost:8080
+    export GRAPHQURL_TEST_GRAPHQL_ENGINE_URL=http://hasura:8080
     export GRAPHQURL_TEST_X_HASURA_ACCESS_KEY=verysecretaccesskey
     npm install
     npm test
