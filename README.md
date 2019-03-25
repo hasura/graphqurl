@@ -10,7 +10,7 @@ Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like C
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 
-[![CircleCI](https://circleci.com/gh/hasura/graphqurl/tree/master.svg?style=shield)](https://circleci.com/gh/hasura/graphqurl/tree/master)
+[![Azure Pipelines](https://dev.azure.com/hasura/graphqurl/_apis/build/status/hasura.graphqurl?branchName=master)](https://dev.azure.com/hasura/graphqurl/_build/latest?definitionId=1&branchName=master)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/hasura/graphqurl?branch=master&svg=true)](https://ci.appveyor.com/project/hasura-bot/graphqurl/branch/master)
 [![Downloads/week](https://img.shields.io/npm/dw/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE)
