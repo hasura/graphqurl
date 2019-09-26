@@ -382,7 +382,7 @@ gq \
      https://my-graphql-endpoint/graphql \
      -H 'Authorization: token <token>' \
      -H 'X-Another-Header: another-header-value' \
-     --variableFile='./queryVariables.json' \
+     --variablesFile='./queryVariables.json' \
      --queryFile='./query.gql
 ```
 
