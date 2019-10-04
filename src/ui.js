@@ -153,7 +153,23 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   } = queryOptions;
   cli.action.start('Introspecting schema');
-  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers});
+
+  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers})
+  .catch(err => {
+    if (err.message && err.message.startsWith('Network error: Unexpected token')) {
+      const {networkError} = err;
+
+      throw new Error(
+        `Invalid GraphQL endpoint${
+          networkError ?
+            `: [${networkError.statusCode}] ${networkError.response.statusText}` :
+            ''
+        }`);
+    }
+
+    throw err;
+  });
+
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
