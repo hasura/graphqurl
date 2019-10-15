@@ -49,27 +49,26 @@ class GraphqurlCommand extends Command {
       queryErrorCb(this, error, queryType, parsedQuery);
     };
 
+    if (queryString === null) {
+      queryString = await executeQueryFromTerminalUI({
+        endpoint,
+        headers,
+        variables,
+        name: flags.name,
+      }, successCallback, errorCallback);
+      return;
+    }
+
     const queryOptions = {
+      query: queryString,
       endpoint,
       headers,
       variables,
       name: flags.name,
     };
 
-    if (queryString === null) {
-      queryString = await executeQueryFromTerminalUI(queryOptions, successCallback, errorCallback);
-      return;
-    }
-
-    cli.action.start('Executing query');
-    await query(
-      {
-        query: queryString,
-        ...queryOptions,
-      },
-      successCallback,
-      errorCallback
-    );
+    cli.action.start("Executing query");
+    await query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {

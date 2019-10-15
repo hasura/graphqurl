@@ -154,8 +154,10 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   } = queryOptions;
   cli.action.start('Introspecting schema');
 
-  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers})
-  .catch(err => {
+  let schemaResponse;
+  try {
+    schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers})
+  } catch(err) {
     if (err.message && err.message.startsWith('Network error: Unexpected token')) {
       const {networkError} = err;
 
@@ -168,7 +170,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     }
 
     throw err;
-  });
+  };
 
   cli.action.stop('done');
   const r = schemaResponse.data;
