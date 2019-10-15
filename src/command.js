@@ -67,7 +67,7 @@ class GraphqurlCommand extends Command {
       name: flags.name,
     };
 
-    cli.action.start("Executing query");
+    cli.action.start('Executing query');
     await query(queryOptions, successCallback, errorCallback);
   }
 
