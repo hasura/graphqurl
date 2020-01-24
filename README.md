@@ -46,7 +46,7 @@ npm install --save graphqurl
 
 ```bash
 gq https://my-graphql-endpoint/graphql \
-     -H 'Authorization: token <token>' \
+     -H 'Authorization: Bearer <token>' \
      -q 'query { table { column } }'
 ```
 
@@ -368,7 +368,7 @@ Generic example:
 ```bash
 gq \
      https://my-graphql-endpoint/graphql \
-     -H 'Authorization: token <token>' \
+     -H 'Authorization: Bearer <token>' \
      -H 'X-Another-Header: another-header-value' \
      -v 'variable1=value1' \
      -v 'variable2=value2' \
@@ -380,7 +380,7 @@ Reading the query and variables from a file:
 ```bash
 gq \
      https://my-graphql-endpoint/graphql \
-     -H 'Authorization: token <token>' \
+     -H 'Authorization: Bearer <token>' \
      -H 'X-Another-Header: another-header-value' \
      --variableFile='./queryVariables.json' \
      --queryFile='./query.gql
