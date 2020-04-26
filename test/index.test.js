@@ -13,7 +13,7 @@ const {
 } = require('./subscription.test.js');
 const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080';
 const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345';
-const makeClient = require('../src/client');
+const {createClient} = require('..');
 const {wsScheme} = require('../src/utils');
 
 const requestHeaders = {
@@ -57,7 +57,7 @@ const createTable = async () => {
 };
 
 const runTests = async () => {
-  const client = makeClient({
+  const client = createClient({
     endpoint: `${hgeUrl}/v1/graphql`,
     headers: requestHeaders,
     websocket: {

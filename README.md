@@ -74,16 +74,6 @@ gq <endpoint> -i
 
 > This is a custom GraphiQL where you can specify request's headers.
 
-#### Mutation
-
-Mutations with variables can be executed by providing the variables with `-v`
-flag.
-
-```bash
-gq <endpoint> \
-   -v 'name=hasura' \
-   -q 'mutation ($name: String) { table (objects: [{ name: $name }]) }'
-```
 
 #### Subscription
 
@@ -135,7 +125,14 @@ $ gq ENDPOINT [-q QUERY]
 #### Using callbacks:
 
 ```js
-const { query } = require('graphqurl');
+const { createClient } = require('graphqurl');
+
+const client = graphqurl({
+  endpoint: 'https://my-graphql-endpoint/graphql',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
 
 function successCallback(response, queryType, parsedQuery) {
   if (queryType === 'subscription') {
@@ -149,13 +146,10 @@ function errorCallback(error, queryType, parsedQuery) {
   console.error(error);
 }
 
-query(
+client.query(
   {
-    query: 'query { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    }
+    query: 'query ($id: Int) { table_by_id (id: $id) { column } }',
+    variables: { id: 24 }
   },
   successCallback,
   errorCallback
@@ -168,15 +162,17 @@ query(
 For queries and mutations,
 
 ```js
-const { query } = require('graphqurl');
+const client = graphqurl({
+  endpoint: 'https://my-graphql-endpoint/graphql',
+  headers: {
+    'Authorization': 'Bearer <token>'
+  }
+});
 
-query(
+client.query(
   {
-    query: 'query { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    }
+    query: 'query ($id: Int) { table_by_id (id: $id) { column } }',
+    variables: { id: 24 }
   }
 ).then((response) => console.log(response))
  .catch((error) => console.error(error));
@@ -185,64 +181,111 @@ query(
 For subscriptions,
 
 ```js
-const { query } = require('graphqurl');
-
-query(
-  {
-    query: 'subscription { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    }
+const client = graphqurl({
+  endpoint: 'https://my-graphql-endpoint/graphql',
+  headers: {
+    'Authorization': 'Bearer <token>'
   }
-).then((observable) => {
-  observable.subscribe(
-    (event) => {
-      console.log('Event received: ', event);
-      // handle event
-    },
-    (error) => {
-      console.log('Error: ', error);
-      // handle error
-    }
-  )
-})
- .catch((error) => console.error(error));
-```
+  websocket: {
+    endpoint: 'wss://my-graphql-endpoint/graphql',
+    onConnectionSuccess: () => console.log('Connected'),
+    onConnectionError: () => console.log('Connection Error'),
+  }
+});
 
-> Subscriptions are not supported in browsers yet.
+client.subscribe(
+  {
+    subscription: 'subscription { table { column } }',
+  },
+  (event) => {
+    console.log('Event received: ', event);
+    // handle event
+  },
+  (error) => {
+    console.log('Error: ', error);
+    // handle error
+  }
+)
+```
 
 ### API
 
-#### query(options, successCallback, errorCallback)
+#### createClient(options)
 
-- **options**: [Object, *required*] GraphQL query options with the following properties:
+The `createClient` function is available as a named export. It takes init options and returns `client`.
+
+```
+const { createClient } = require('graphqurl');
+```
+
+
+- **options**: [Object, *required*] graphqurl init options with the following properties:
   - endpoint: [String, *required*] GraphQL endpoint
-  - query: [String, *required*] GraphQL query string
-  - headers: [Object] Request headers, defaults to `{}`
-  - variables: [Object] GraphQL query variables, defaults to '{}'
-  - name: [String] Operation name. Used only if the `query` string contains multiple operations.
-- **successCallback**: [Function] Success callback which is called after a successful response. It is called with the following parameters:
-  - response: The response of your query
-  - queryType: The type of query you made i.e. one [`query`, `mutation`, `subscription`]
-  - parsedQuery: The query parsed into a GraphQL document
-- **errorCallback**: [Function] Error callback which is called after the occurrence of an error. It is called with the following parameters:
-  - error: The occurred error
-  - queryType: [String] The type of query you made i.e. one [`query`, `mutation`, `subscription`]
-  - parsedQuery: [Object] The query parsed into a GraphQL document
-- **Returns**: [Promise (response) ]If `successCallback` and `errorCallback` are not provided, this function returns the response wrapped in a promise.
-  - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`. However, if you make a subscription, it returns an observable that you can later subscribe to. Check [this example](#subscriptions) to see how to subscribe to observables.
+  - headers: [Object] Request header, defaults to `{}`. These headers will be added along with all the GraphQL queries, mutations and subscriptions made through the client.
+  - websocket: [Object] Options for configuring subscriptions over websocket. Subscriptions are not supported if this field is empty.
+    - endpoint: [String, ] WebSocket endpoint to run GraphQL subscriptions.
+    - shouldRetry: [Boolean] Boolean value whether to retry closed websocket connection. Defaults to false.
+    - parameters: [Object] Payload to send the connection init message with
+    - onConnectionSuccess: [void => void] Callback function called when the GraphQL connection is successful. Please not that this is different from the websocket connection being open. Please check the [followed protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) for more details.
+    - onConnectionError: [error => null] Callback function called if the GraphQL connection over websocket is unsuccessful
+    - onConnectionKeepAlive: [void => null]: Callback function called when the GraphQL server sends `GRAPHQL_CONNECTION_KEEP_ALIVE` messages to keep the connection alive.
+
+- **Returns**: [client]
+
+#### Client
+
+
+```js
+const client = createClient({
+  endpoint: 'https://my-graphql-endpoint/graphql'
+});
+```
+
+The graphqurl client exposeses the following methods:
+
+- **client.query**: [(queryoptions, successCallback, errorCallback) => Promise (response)]
+  - queryOptions: [Object *required*]
+    - query: [String *required*] The GraphQL query or mutation to be executed over HTTP
+    - variables: [Object] GraphQL query variables. Defaults to `{}`
+    - headers: [Object] Header overrides. If you wish to make a GraphQL query while adding to or overriding the headers provided during initalisations, you can pass the headers here.
+  - successCallback: [response => null] Success callback which is called after a successful response. It is called with the following parameters:
+    - response: The response of your query
+  - errorCallback: [error => null] Error callback which is called after the occurrence of an error. It is called with the following parameters:
+    - error: The occurred error
+  - **Returns**: [Promise (response) ] This function returns the response wrapped in a promise.
+    - response: response is a GraphQL compliant JSON object in case of `queries` and `mutations`.
+
+- **client.subscribe**: [(subscriptionOptions, eventCallback, errorCallback) => Function (stop)]
+  - subscriptionOptions: [Object *required*]
+    - subscription: [String *required*] The GraphQL subscription to be started over WebSocket
+    - variables: [Object] GraphQL query variables. Defaults to `{}`
+    - onGraphQLData: [(response) => null] You can optionally pass this function as an event callback
+    - onGraphQLError: [(response) => null] You can optionally pass this function as an error callback
+    - onGraphQLComplete: [() => null] Callback function called when the GraphQL subscription is declared as `complete` by the server and no more events will be received
+  - eventCallback: [(response) => null] Event callback which is called after receiving an event from the given subscription. It is called with the following parameters:
+    - event: The received event from the subscription
+  - errorCallback: [error => null] Error callback which is called after the occurrence of an error. It is called with the following parameters:
+    - error: The occurred error
+  - **Returns**: [void => null] This is a function to stop the subscription
+
 
 ## More Examples
 
 ### Node Library
 
-#### Queries
+#### Queries and Mutations
 
 Query example with variables
 
 ```js
-const { query } = require('graphqurl');
+const { createClient } = require('graphqurl');
+
+const client = graphqurl({
+  endpoint: 'https://my-graphql-endpoint/graphql',
+  headers: {
+    'x-access-key': 'mysecretxxx',
+  },
+});
 
 query(
   {
@@ -254,42 +297,8 @@ query(
         }
       }
     `,
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    },
     variables: {
       name: 'Alice'
-    }
-  }
-).then((response) => console.log(response))
- .catch((error) => console.error(error));
-```
-
-#### Mutations
-
-```js
-const { query } = require('graphqurl');
-
-query(
-  {
-    query: `
-      mutation ($id_insert_input: String!, $column_insert_input: String!) {
-        insert_to_table (
-          id: $id_insert_input,
-          column: $column_insert_input
-        ) {
-          affected_rows
-        }
-      }
-    `,
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'x-access-key': 'mysecretxxx',
-    },
-    variables: {
-      id_insert_input: 'id_ak23sdfkjk2',
-      column_insert_input: 'Bob'
     }
   }
 ).then((response) => console.log(response))
@@ -301,7 +310,16 @@ query(
 Using promises,
 
 ```js
-const { query } = require('graphqurl');
+const { createClient } = require('graphqurl');
+const client = graphqurl({
+  endpoint: 'https://my-graphql-endpoint/graphql',
+  headers: {
+    'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
+  }
+  websocket: {
+    endpoint: 'wss://my-graphql-endpoint/graphql',
+  }
+})
 
 const eventCallback = (event) => {
   console.log('Event received:', event);
@@ -312,54 +330,15 @@ const errorCallback = (error) => {
   console.log('Error:', error)
 };
 
-query(
+client.subscribe(
   {
     query: 'subscription { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
-    }
-  },
-).then((observable) => {
-  observable.subscribe(
-    (event) => {
-      console.log('Event received', event);
-      // handle event
-    },
-    (error) => {
-      console.log('Error', error);
-      // handle error
-    }
-  )
-}).catch(errorCallback);
-```
-
-Lets do the above subscription using callbacks,
-
-```js
-const { query } = require('graphqurl');
-
-function eventCallback(event) {
-  console.log('Event received:', event);
-  // handle event
-}
-
-function errorCallback(error) {
-  console.log('Error:', error)
-}
-
-query(
-  {
-    query: 'subscription { table { column } }',
-    endpoint: 'https://my-graphql-endpoint/graphql',
-    headers: {
-      'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
-    }
   },
   eventCallback,
   errorCallback
-);
+)
 ```
+
 
 ### CLI
 
@@ -373,23 +352,6 @@ gq \
      -v 'variable1=value1' \
      -v 'variable2=value2' \
      -q 'query { table { column } }'
-```
-
-Reading the query and variables from a file:
-
-```bash
-gq \
-     https://my-graphql-endpoint/graphql \
-     -H 'Authorization: Bearer <token>' \
-     -H 'X-Another-Header: another-header-value' \
-     --variablesFile='./queryVariables.json' \
-     --queryFile='./query.gql
-```
-
-Executing only a particular named query from a file that contains many queries:
-
-```bash
-gq <endpoint> --queryFile ./queries.gql --name getItems
 ```
 
 ---
