@@ -13,17 +13,11 @@
     "@oclif/config": "^1.6.33",
     "@oclif/errors": "^1.1.2",
     "@oclif/plugin-help": "^2.0.5",
-    "apollo-cache-inmemory": "^1.2.6",
-    "apollo-client": "^2.3.7",
-    "apollo-link": "^1.2.2",
-    "apollo-link-http": "^1.5.4",
-    "apollo-link-ws": "^1.0.8",
     "cli-ux": "^4.7.3",
     "express": "^4.16.3",
-    "graphql": "0.9.1",
+    "graphql": "^15.0.0",
     "graphql-language-service-interface": "^1.2.2",
     "graphql-language-service-utils": "^1.2.2",
-    "graphql-tag": "^2.9.2",
     "isomorphic-fetch": "^2.2.1",
     "isomorphic-ws": "^4.0.1",
     "node-fetch": "^2.2.0",
@@ -33,6 +27,7 @@
     "ws": "^6.0.0"
   },
   "devDependencies": {
+    "@zeit/ncc": "^0.22.1",
     "eslint": "^4.19.1",
     "eslint-config-oclif": "^1.5.1"
   },
@@ -61,9 +56,10 @@
     "eslintfix": "eslint . --fix",
     "build-graphiql": "cd src/graphiql/app && npm install && npm run build",
     "posttest": "npm run eslint",
-    "prepublish": "npm run build-graphiql",
+    "prepublish": "npm run build-graphiql && npm run bundle",
     "clearteststate": "node test/clearstate.test.js",
-    "test": "node test/index.test.js && npm run clearteststate"
+    "test": "node test/index.test.js && npm run clearteststate",
+    "bundle": "ncc build src/index.js -o lib"
   },
   "pre-commit": [
     "eslintfix"
