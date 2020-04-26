@@ -1,9 +1,10 @@
 const tk = require('terminal-kit');
 const {introspectionQuery, buildClientSchema, parse} = require('graphql');
 const {cli} = require('cli-ux');
-const query = require('./query');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
+const makeClient = require('./client');
+const {wsScheme} = require('./utils');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -153,7 +154,11 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   } = queryOptions;
   cli.action.start('Introspecting schema');
-  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers});
+  let client = makeClient({
+    endpoint,
+    headers,
+  });
+  const schemaResponse = await client.query({query: introspectionQuery});
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
@@ -165,7 +170,46 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
     /* eslint-disable-next-line no-await-in-loop */
-    await query(Object.assign({}, queryOptions, {query: queryString}), successCb, errorCb);
+
+    let ast;
+    cli.action.start('Waiting');
+    try {
+      ast = parse(queryString);
+      const operation = ast.definitions[0].operation;
+      const callbackWrapper = callback => data => {
+        callback(data, operation, ast);
+      };
+      if (operation === 'subscription') {
+        client = makeClient({
+          endpoint,
+          headers,
+          websocket: {
+            endpoint: wsScheme(endpoint),
+            onConnectionSuccess: () => {
+              client.subscribe(
+                {subscription: queryString},
+                callbackWrapper(successCb),
+                callbackWrapper(errorCb)
+              );
+            },
+          },
+        });
+      } else {
+        await client.query(
+          {query: queryString},
+          callbackWrapper(successCb),
+          callbackWrapper(errorCb)
+        );
+      }
+    } catch (err) {
+      errorCb(
+        err,
+        null,
+        null
+      );
+    }
+
+    cli.action.stop('done');
   }
 };
 

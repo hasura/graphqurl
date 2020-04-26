@@ -13,6 +13,8 @@ const {
 } = require('./subscription.test.js');
 const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080';
 const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345';
+const makeClient = require('../src/client');
+const {wsScheme} = require('../src/utils');
 
 const requestHeaders = {
   'content-type': 'application/json',
@@ -49,27 +51,29 @@ const createTable = async () => {
 
   if (response.status !== 200) {
     const respObj = await response.json();
-    console.log(respObj);
     console.log('Unexpected: Could not create table');
-    process.exit(1);
+    console.log(respObj);
   }
 };
 
 const runTests = async () => {
-  await createTable();
-  await testMutationPromise();
-  await testMutationCallback();
-  await testQueryPromise();
-  await testQueryCallback();
-  await testSubscriptionPromise();
-  await testSubscriptionCallback();
+  const client = makeClient({
+    endpoint: `${hgeUrl}/v1/graphql`,
+    headers: requestHeaders,
+    websocket: {
+      endpoint: wsScheme(`${hgeUrl}/v1/graphql`),
+    },
+  });
+  await testMutationPromise(client);
+  await testMutationCallback(client);
+  await testQueryPromise(client);
+  await testQueryCallback(client);
+  await testSubscriptionPromise(client);
+  await testSubscriptionCallback(client);
 };
 
-(async () => {
-  try {
-    await runTests();
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
-})();
+createTable().then(async () => {
+  runTests();
+}).catch(e => {
+  console.log(e);
+});

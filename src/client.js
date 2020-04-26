@@ -1,35 +1,36 @@
-const { cloneObject } = require('./utils');
+const {cloneObject, wsScheme} = require('./utils');
 const fetch = require('node-fetch');
 const WebSocket = require('ws');
 const {
-  GRAPHQL_SUBSCRIPTIONS_PROTOCOL,
   GQL_CONNECTION_INIT,
-  GQL_CONNECTION_ERROR,
-  GQL_CONNECTION_STOP,
   GQL_START,
   GQL_STOP,
-  GQL_CONNECTION_ACK,
-  GQL_CONNECTION_KEEP_ALIVE,
-  GQL_DATA,
-  GQL_ERROR,
-  GQL_COMPLETE,
-} = require('./constants');
+  GRAPHQL_SUBSCRIPTIONS_PROTOCOL,
+  handler: wsEventHandler,
+} = require('./events');
 
-const makeClient = (options) => {
-
+const makeClient = options => {
   const {
     endpoint,
     websocket,
-    headers
+    headers,
+    hook,
   } = options;
 
-  let clientHeaders = cloneObject(headers || {});
-
-  const updateHeaders = (newHeaders) => {
-    clientHeaders = cloneObject(newHeaders || {});
+  const clientContext = {
+    endpoint,
+    headers: cloneObject(headers || {}),
+    websocket: {
+      ...websocket,
+      endpoint: (websocket && websocket.endpoint) || wsScheme(endpoint),
+      parameters: (websocket && websocket.parameters) || {},
+      client: null,
+      open: false,
+      subscriptions: {},
+    },
   };
 
-  const makeQuery = async (queryOptions, successCallback, errorCallback) => {
+  const executeQuery = async (queryOptions, successCallback, errorCallback) => {
     const {
       query,
       variables,
@@ -37,25 +38,28 @@ const makeClient = (options) => {
     } = queryOptions;
     try {
       const response = await fetch(
-        endpoint,
+        clientContext.endpoint,
         {
           method: 'POST',
           headers: {
-            ...clientHeaders,
-            ...(headerOverrides || {})
+            ...clientContext.headers,
+            ...(headerOverrides || {}),
           },
-          body: JSON.stringify({query, variables: (variables || {})})
+          body: JSON.stringify({query, variables: (variables || {})}),
         }
       );
       const responseObj = await response.json();
+      if (hook) {
+        hook(responseObj);
+      }
       if (responseObj.errors) {
         if (errorCallback) {
-          errorCallback(responseObj)
+          errorCallback(responseObj);
         }
-        throw responseObj
+        throw responseObj;
       } else {
         if (successCallback) {
-          successCallback(responseObj)
+          successCallback(responseObj);
         }
         return responseObj;
       }
@@ -65,84 +69,62 @@ const makeClient = (options) => {
       } else {
         throw {
           errors: [{
-            message: "failed to fetch"
-          }]
-        }
+            message: 'failed to fetch',
+          }],
+        };
       }
     }
-  }
+  };
 
-  const isReady = (w) => {
-    return w && w.readyState === w.OPEN
-  }
   const makeWsClient = async () => {
-    const {
-      endpoint: wsEndpoint,
-      headers: wsHeaders,
-      parameters,
-      onConnectionSuccess,
-      onConnectionError,
-      onConnectionKeepAlive,
-      shouldRetry
-    } = websocket;
-
     try {
-      wsConnection = new WebSocket(wsEndpoint, 'graphql-ws')
+      const wsConnection = new WebSocket(clientContext.websocket.endpoint, GRAPHQL_SUBSCRIPTIONS_PROTOCOL);
       return wsConnection;
     } catch (e) {
       console.log(e);
       throw new Error('Failed to establish the WebSocket connection: ', e);
     }
-  }
+  };
 
-  const subscriptionsContext = {
-    ...websocket,
-    client: null,
-    subscriptions: {},
-    open: false
+  const sendWsEvent = data => {
+    clientContext.websocket.client.send(JSON.stringify(data));
   };
 
   const setWsClient = _wsClient => {
+    clientContext.websocket.client = _wsClient;
 
-    subscriptionsContext.client = _wsClient
-
-    if (websocket.shouldRetry) {
+    if (clientContext.websocket.shouldRetry) {
       _wsClient.onclose = () => {
         makeWsClient().then(setWsClient);
-      }
+      };
     }
 
-    _wsClient.onopen = () => {
-      console.log("OPEN");
+    _wsClient.addEventListener('open', () => {
+      const payload = {
+        ...clientContext.websocket.parameters,
+        headers: {
+          ...clientContext.headers,
+          ...clientContext.websocket.parameters.headers,
+        },
+      };
       sendWsEvent({
         type: GQL_CONNECTION_INIT,
-        payload: {
-          ...(subscriptionsContext.parameters || {}),
-          ...(subscriptionsContext.headers || {})
-        } 
+        payload,
       });
-    }
+    });
 
-    _wsClient.onmessage = (event) => {
-      wsEventHandler(subscriptionsContext, event);    
-    }
-  }
+    _wsClient.addEventListener('message', event => {
+      wsEventHandler(clientContext.websocket, event);
+    });
+  };
   if (websocket) {
     makeWsClient().then(setWsClient).catch(e => {
       console.error(e);
     });
   }
 
-  const sendWsEvent = (data) => {
-    console.log("Sending ")
-    console.log(data);
-    subscriptionsContext.client.send(JSON.stringify(data));
-  };
-
   const subscribe = (subscriptionOptions, successCallback, errorCallback) => {
-
-
-    if (!subscriptionsContext.client) {
+    if (!clientContext.websocket.client) {
       console.log('WebSocket connection has not been established');
       return;
     }
@@ -156,93 +138,104 @@ const makeClient = (options) => {
     } = subscriptionOptions;
 
     const generateOperationId = () => {
-      let id = ""
+      let id = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      for ( let _i = 0; _i < 5; _i++ ) {
+      for (let _i = 0; _i < 5; _i++) {
         id += characters.charAt(Math.floor(Math.random() * characters.length));
       }
-      return id + (Object.keys(subscriptionsContext.subscriptions).length + 1);
-    }
-
-    const operationId = generateOperationId();
-    subscriptionsContext.subscriptions[operationId] = {
-      onGraphQLData,
-      onGraphQLComplete,
-      onGraphQLError
+      return id + (Object.keys(clientContext.websocket.subscriptions).length + 1);
     };
 
-    let retry = 0;
-    console.log("whiling")
-    while (!subscriptionsContext.open) {
-      retry ++;
-      if (retry % 50 === 0) {
-        console.log('Waiting for websocket connection to be ready');
-      }
-      console.log(retry);
-    }
+    const operationId = generateOperationId();
+    clientContext.websocket.subscriptions[operationId] = {
+      onGraphQLData: data => {
+        if (onGraphQLData) {
+          onGraphQLData(data);
+        }
+        if (successCallback) {
+          successCallback(data);
+        }
+      },
+      onGraphQLComplete,
+      onGraphQLError: data => {
+        if (onGraphQLError) {
+          onGraphQLError(data);
+        }
+        if (errorCallback) {
+          errorCallback(data);
+        }
+      },
+    };
 
-    console.log("Sendinggg");
     sendWsEvent({
       type: GQL_START,
       id: operationId,
       payload: {
         query: subscription,
-        variables: variables || {}
-      }
+        variables: variables || {},
+      },
     });
 
-  }
+    return {
+      stop: () => {
+        sendWsEvent({
+          type: GQL_STOP,
+          id: operationId,
+        });
+      },
+    };
+  };
+
+  const updateHeaders = newHeaders => {
+    clientContext.headers = cloneObject(newHeaders);
+    if (clientContext.websocket.client) {
+      makeWsClient().then(setWsClient).catch(e => {
+        console.error(e);
+      });
+    }
+  };
 
   return {
-    query: makeQuery,
-    subscribe: subscribe
-  }
+    query: executeQuery,
+    subscribe: subscribe,
+    updateHeaders,
+  };
+};
 
-}
+// const o = {
+//   endpoint: "http://localhost:8080/v1/graphql",
+//   websocket: {
+//     endpoint: 'ws://localhost:8080/v1/graphql',
+//     onConnectionSuccess: () => console.log('connection success'),
+//     onConnectionError: () => console.log('connection error'),
+//   }
+// };
 
-const wsEventHandler = (ctx, event) => {
+// const q = `
+//  {
+//   user { id}
+//  }
+// `;
+// const qO = {
+//   query: q,
+// }
 
-  let { data } = event;
-  try {
-    data = JSON.parse(data);
-  } catch (e) {
-    console.error('unable to parse event data; unexpected event from server');
-    return;
-  }
+// const s0 = {
+//   subscription: 'subscription { user { id age } }',
+//   onGraphQLData: (d) => console.log('Got graphql data', JSON.stringify(d)),
+//   onGraphQLError: (e) => console.log('Got graphql error', JSON.stringify(e)),
+//   onGraphQLComplete: () => console.log('Got graphql complete'),
+// }
 
-  let s;
-  switch (data.type) {
-    case GQL_CONNECTION_ACK:
-      console.log('ack');
-      ctx.onConnectionSuccess && ctx.onConnectionSuccess();
-      ctx.open = true;
-      return;
-    case GQL_CONNECTION_ERROR:
-      console.log('err');
-      ctx.onConnectionError && ctx.onConnectionError();
-      return;
-    case GQL_CONNECTION_KEEP_ALIVE:
-      ctx.onConnectionKeepAlive && ctx.onConnectionKeepAlive();
-      return;
-    case GQL_DATA:
-      s = ctx.subscriptions[data.id];
-      if (s && s.onGraphQLData) {
-        s.onGraphQLData(data.payload);
-      }
-      return;
-    case GQL_ERROR:
-      s = ctx.subscriptions[data.id];
-      if (s && s.onGraphQLError) {
-        s.onGraphQLError(data.payload);
-      }
-      return;
-    case GQL_COMPLETE:
-      s = ctx.subscriptions[data.id];
-      if (s && s.onGraphQLComplete) {
-        s.onGraphQLComplete(data.payload);
-      }
-      delete ctx.subscriptions[data.id];
-      return;
-  }
-}
+// const client = makeClient(o);
+// client.query(qO).then(r => {
+//   console.log('resp');
+//   console.log(r);
+//   const { stop } = client.subscribe(s0);
+//   stop();
+// }).catch(e => {
+//   console.log("error");
+//   console.log(e);
+// })
 
+module.exports = makeClient;

@@ -1,8 +1,7 @@
-const {query} = require('..');
 const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080';
 const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345';
 
-const testMutationPromise = async () => {
+const testMutationPromise = async client => {
   const mutationOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
     query: `mutation($id:Int, $text:String) {
@@ -20,7 +19,7 @@ const testMutationPromise = async () => {
   };
   let response;
   try {
-    response = await query(mutationOpts);
+    response = await client.query(mutationOpts);
     if (response.data.insert_graphqurl_test.affected_rows === 1) {
       console.log('✔︎ Mutation with promise');
     } else {
@@ -35,7 +34,7 @@ const testMutationPromise = async () => {
   }
 };
 
-const testMutationCallback = async () => {
+const testMutationCallback = async client => {
   const mutationOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
     query: `mutation($id:Int, $text:String) {
@@ -52,7 +51,7 @@ const testMutationCallback = async () => {
     },
   };
   let affectedRows;
-  await query(
+  await client.query(
     mutationOpts,
     resp => {
       affectedRows = resp.data.insert_graphqurl_test.affected_rows;

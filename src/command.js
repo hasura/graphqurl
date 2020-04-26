@@ -1,6 +1,4 @@
-const query = require('./query');
 const {Command, flags} = require('@oclif/command');
-const {cli} = require('cli-ux');
 const {CLIError} = require('@oclif/errors');
 const fs = require('fs');
 const url = require('url');
@@ -56,19 +54,7 @@ class GraphqurlCommand extends Command {
         variables,
         name: flags.name,
       }, successCallback, errorCallback);
-      return;
     }
-
-    const queryOptions = {
-      query: queryString,
-      endpoint: endpoint,
-      headers,
-      variables,
-      name: flags.name,
-    };
-
-    cli.action.start('Executing query');
-    await query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {

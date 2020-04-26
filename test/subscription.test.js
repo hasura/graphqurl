@@ -1,11 +1,10 @@
-const {query} = require('..');
 const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080';
 const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345';
 
-const testSubscriptionPromise = async () => {
+const testSubscriptionPromise = async client => {
   const subOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
-    query: `subscription ($id:Int) {
+    subscription: `subscription ($id:Int) {
       graphqurl_test(where: { id: { _eq: $id} }){
         text
       }
@@ -18,8 +17,8 @@ const testSubscriptionPromise = async () => {
     },
   };
   let respLength = null;
-  const observable = await query(subOpts);
-  let subscription = observable.subscribe(
+  client.subscribe(
+    subOpts,
     event => {
       if (event.data && event.data.graphqurl_test) {
         respLength = event.data.graphqurl_test.length;
@@ -35,17 +34,7 @@ const testSubscriptionPromise = async () => {
       process.exit(1);
     }
   );
-  setTimeout(
-    () => {
-      if (respLength === null || respLength === undefined) {
-        console.log('✖ Subscription with promise');
-        console.log('Mutation did not trigger an event', respLength);
-        process.exit(1);
-      }
-    },
-    10000
-  );
-  const mutationResp = await query({
+  const mutationResp = await client.query({
     ...subOpts,
     query: `mutation($id:Int, $text:String) {
       insert_graphqurl_test(objects:[{id: $id, text:$text}]){
@@ -61,7 +50,6 @@ const testSubscriptionPromise = async () => {
     setTimeout(
       () => {
         if (respLength === 1) {
-          subscription.unsubscribe();
           console.log('✔︎ Subscription with promise');
         } else {
           console.log('✖ Subscription with promise');
@@ -73,10 +61,10 @@ const testSubscriptionPromise = async () => {
   }
 };
 
-const testSubscriptionCallback = async () => {
+const testSubscriptionCallback = async client => {
   const subOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
-    query: `subscription ($id:Int) {
+    subscription: `subscription ($id:Int) {
       graphqurl_test(where: { id: { _eq: $id} }){
         text
       }
@@ -89,7 +77,7 @@ const testSubscriptionCallback = async () => {
     },
   };
   let respLength = null;
-  await query(
+  await client.subscribe(
     subOpts,
     event => {
       if (event.data && event.data.graphqurl_test) {
@@ -106,16 +94,7 @@ const testSubscriptionCallback = async () => {
       process.exit(1);
     }
   );
-  setTimeout(
-    () => {
-      if (respLength === null || respLength === undefined) {
-        console.log('✖ Subscription with callback');
-        process.exit(1);
-      }
-    },
-    10000
-  );
-  const mutationResp = await query({
+  const mutationResp = await client.query({
     ...subOpts,
     query: `mutation($id:Int, $text:String) {
       insert_graphqurl_test(objects:[{id: $id, text:$text}]){
