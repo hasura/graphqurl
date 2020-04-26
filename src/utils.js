@@ -39,7 +39,15 @@ const makeObservable = (query, variables, endpoint, headers, errorCb) => {
   );
 };
 
+const cloneObject = (obj) => {
+  if (!obj || (obj && obj.constructor.name !== "Object")) {
+    return obj;
+  }
+  return JSON.parse(JSON.stringify(obj));
+}
+
 module.exports = {
   makeWsLink,
   makeObservable,
+  cloneObject 
 };
