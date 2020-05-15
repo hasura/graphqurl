@@ -202,40 +202,4 @@ const makeClient = options => {
   };
 };
 
-// const o = {
-//   endpoint: "http://localhost:8080/v1/graphql",
-//   websocket: {
-//     endpoint: 'ws://localhost:8080/v1/graphql',
-//     onConnectionSuccess: () => console.log('connection success'),
-//     onConnectionError: () => console.log('connection error'),
-//   }
-// };
-
-// const q = `
-//  {
-//   user { id}
-//  }
-// `;
-// const qO = {
-//   query: q,
-// }
-
-// const s0 = {
-//   subscription: 'subscription { user { id age } }',
-//   onGraphQLData: (d) => console.log('Got graphql data', JSON.stringify(d)),
-//   onGraphQLError: (e) => console.log('Got graphql error', JSON.stringify(e)),
-//   onGraphQLComplete: () => console.log('Got graphql complete'),
-// }
-
-// const client = makeClient(o);
-// client.query(qO).then(r => {
-//   console.log('resp');
-//   console.log(r);
-//   const { stop } = client.subscribe(s0);
-//   stop();
-// }).catch(e => {
-//   console.log("error");
-//   console.log(e);
-// })
-
 module.exports = makeClient;
