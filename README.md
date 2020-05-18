@@ -127,7 +127,7 @@ $ gq ENDPOINT [-q QUERY]
 ```js
 const { createClient } = require('graphqurl');
 
-const client = graphqurl({
+const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'Authorization': 'Bearer <token>'
@@ -162,7 +162,9 @@ client.query(
 For queries and mutations,
 
 ```js
-const client = graphqurl({
+const { createClient } = require('graphqurl');
+
+const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'Authorization': 'Bearer <token>'
@@ -181,7 +183,9 @@ client.query(
 For subscriptions,
 
 ```js
-const client = graphqurl({
+const { createClient } = require('graphqurl');
+
+const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'Authorization': 'Bearer <token>'
@@ -280,14 +284,14 @@ Query example with variables
 ```js
 const { createClient } = require('graphqurl');
 
-const client = graphqurl({
+const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'x-access-key': 'mysecretxxx',
   },
 });
 
-query(
+client.query(
   {
     query: `
       query ($name: String) {
@@ -311,7 +315,7 @@ Using promises,
 
 ```js
 const { createClient } = require('graphqurl');
-const client = graphqurl({
+const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'Authorization': 'Bearer Andkw23kj=Kjsdk2902ksdjfkd'
