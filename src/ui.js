@@ -1,5 +1,5 @@
 const tk = require('terminal-kit');
-const {introspectionQuery, buildClientSchema, parse} = require('graphql');
+const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
 const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
@@ -158,7 +158,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: introspectionQuery});
+  const schemaResponse = await client.query({query: getIntrospectionQuery()});
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
