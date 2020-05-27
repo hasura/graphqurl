@@ -6,6 +6,10 @@ const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
 const {wsScheme} = require('./utils');
 
+const rewire = require('rewire')
+const queryModule = rewire('./query.js')
+const query = queryModule.__get__('query')
+
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
 var term = tk.terminal;
@@ -171,44 +175,8 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     const queryString = await getQueryFromTerminalUI();
     /* eslint-disable-next-line no-await-in-loop */
 
-    let ast;
     cli.action.start('Waiting');
-    try {
-      ast = parse(queryString);
-      const operation = ast.definitions[0].operation;
-      const callbackWrapper = callback => data => {
-        callback(data, operation, ast);
-      };
-      if (operation === 'subscription') {
-        client = makeClient({
-          endpoint,
-          headers,
-          websocket: {
-            endpoint: wsScheme(endpoint),
-            onConnectionSuccess: () => {
-              client.subscribe(
-                {subscription: queryString},
-                callbackWrapper(successCb),
-                callbackWrapper(errorCb)
-              );
-            },
-          },
-        });
-      } else {
-        await client.query(
-          {query: queryString},
-          callbackWrapper(successCb),
-          callbackWrapper(errorCb)
-        );
-      }
-    } catch (err) {
-      errorCb(
-        err,
-        null,
-        null
-      );
-    }
-
+    await query({query: queryString, endpoint, headers}, successCb, errorCb);
     cli.action.stop('done');
   }
 };
