@@ -74,14 +74,7 @@ const query = async function (options, successCb, errorCb) {
   };
 
   try {
-    if (queryType === 'query') {
-      await client.query(
-        {query: query,
-        variables},
-        callbackWrapper(successCb),
-        callbackWrapper(errorCb)
-      ); // NOTE: handle mutations
-    } else if (queryType === 'subscription') {
+    if (queryType === 'subscription') {
       client = makeClient({
         endpoint,
         headers,
@@ -97,6 +90,13 @@ const query = async function (options, successCb, errorCb) {
           },
         },
       });
+    } else {
+      await client.query(
+          {query: query,
+          variables},
+          callbackWrapper(successCb),
+          callbackWrapper(errorCb)
+        ); 
     }
   } catch (err) {
     errorCb(err, null, null);
