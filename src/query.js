@@ -2,6 +2,7 @@ const makeClient = require('./client');
 const {wsScheme} = require('./utils');
 const {parse} = require('graphql');
 
+/* eslint-disable-next-line no-unused-vars */
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;
   let client = makeClient({
@@ -81,22 +82,22 @@ const query = async function (options, successCb, errorCb) {
         websocket: {
           endpoint: wsScheme(endpoint),
           onConnectionSuccess: () => {
-            client.subscribe(
-              {subscription: query,
+            client.subscribe({
+              subscription: query,
               variables},
-              callbackWrapper(successCb),
-              callbackWrapper(errorCb)
+            callbackWrapper(successCb),
+            callbackWrapper(errorCb)
             );
           },
         },
       });
     } else {
-      await client.query(
-          {query: query,
-          variables},
-          callbackWrapper(successCb),
-          callbackWrapper(errorCb)
-        ); 
+      await client.query({
+        query: query,
+        variables},
+      callbackWrapper(successCb),
+      callbackWrapper(errorCb)
+      );
     }
   } catch (err) {
     errorCb(err, null, null);

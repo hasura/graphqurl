@@ -4,11 +4,10 @@ const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
-const {wsScheme} = require('./utils');
 
-const rewire = require('rewire')
-const queryModule = rewire('./query.js')
-const query = queryModule.__get__('query')
+const rewire = require('rewire');
+const queryModule = rewire('./query.js');
+const query = queryModule.__get__('query');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -173,8 +172,6 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
-    /* eslint-disable-next-line no-await-in-loop */
-
     cli.action.start('Waiting');
     await query({query: queryString, endpoint, headers}, successCb, errorCb);
     cli.action.stop('done');

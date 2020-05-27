@@ -7,9 +7,9 @@ const runGraphiQL = require('./graphiql/server');
 const {getIntrospectionQuery} = require('graphql');
 const {cli} = require('cli-ux');
 
-const rewire = require('rewire')
-const queryModule = rewire('./query.js')
-const query = queryModule.__get__('query')
+const rewire = require('rewire');
+const queryModule = rewire('./query.js');
+const query = queryModule.__get__('query');
 
 class GraphqurlCommand extends Command {
   async run() {
@@ -63,7 +63,7 @@ class GraphqurlCommand extends Command {
       variables,
       name: flags.name,
     };
-    
+
     cli.action.start('Executing query');
     await query(queryOptions, successCallback, errorCallback);
   }
