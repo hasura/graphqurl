@@ -4,7 +4,7 @@ const url = require('url');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
-const {introspectionQuery} = require('graphql');
+const {getIntrospectionQuery} = require('graphql');
 const {cli} = require('cli-ux');
 
 const rewire = require('rewire')
@@ -34,7 +34,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.introspect) {
-      queryString = introspectionQuery;
+      queryString = getIntrospectionQuery();
     }
 
     this.args = args;
