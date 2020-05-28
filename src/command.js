@@ -6,10 +6,7 @@ const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
 const {getIntrospectionQuery} = require('graphql');
 const {cli} = require('cli-ux');
-
-const rewire = require('rewire');
-const queryModule = rewire('./query.js');
-const query = queryModule.__get__('query');
+const query = require('./query.js');
 
 class GraphqurlCommand extends Command {
   async run() {

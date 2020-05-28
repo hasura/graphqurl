@@ -2,7 +2,6 @@ const makeClient = require('./client');
 const {wsScheme} = require('./utils');
 const {parse} = require('graphql');
 
-/* eslint-disable-next-line no-unused-vars */
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;
   let client = makeClient({
@@ -103,3 +102,5 @@ const query = async function (options, successCb, errorCb) {
     errorCb(err, null, null);
   }
 };
+
+module.exports = query;

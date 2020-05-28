@@ -4,10 +4,7 @@ const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
-
-const rewire = require('rewire');
-const queryModule = rewire('./query.js');
-const query = queryModule.__get__('query');
+const query = require('./query.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
