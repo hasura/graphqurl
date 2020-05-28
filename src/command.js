@@ -4,7 +4,9 @@ const url = require('url');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
-const {introspectionQuery} = require('graphql');
+const {getIntrospectionQuery} = require('graphql');
+const {cli} = require('cli-ux');
+const query = require('./query.js');
 
 class GraphqurlCommand extends Command {
   async run() {
@@ -29,7 +31,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.introspect) {
-      queryString = introspectionQuery;
+      queryString = getIntrospectionQuery();
     }
 
     this.args = args;
@@ -50,6 +52,17 @@ class GraphqurlCommand extends Command {
         name: flags.name,
       }, successCallback, errorCallback);
     }
+
+    const queryOptions = {
+      query: queryString,
+      endpoint: endpoint,
+      headers,
+      variables,
+      name: flags.name,
+    };
+
+    cli.action.start('Executing query');
+    await query(queryOptions, successCallback, errorCallback);
   }
 
   parseHeaders(headersArray) {

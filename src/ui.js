@@ -1,10 +1,10 @@
 const tk = require('terminal-kit');
-const {introspectionQuery, buildClientSchema, parse} = require('graphql');
+const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
 const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
-const {wsScheme} = require('./utils');
+const query = require('./query.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -158,7 +158,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: introspectionQuery});
+  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
@@ -169,46 +169,8 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
-    /* eslint-disable-next-line no-await-in-loop */
-
-    let ast;
     cli.action.start('Waiting');
-    try {
-      ast = parse(queryString);
-      const operation = ast.definitions[0].operation;
-      const callbackWrapper = callback => data => {
-        callback(data, operation, ast);
-      };
-      if (operation === 'subscription') {
-        client = makeClient({
-          endpoint,
-          headers,
-          websocket: {
-            endpoint: wsScheme(endpoint),
-            onConnectionSuccess: () => {
-              client.subscribe(
-                {subscription: queryString},
-                callbackWrapper(successCb),
-                callbackWrapper(errorCb)
-              );
-            },
-          },
-        });
-      } else {
-        await client.query(
-          {query: queryString},
-          callbackWrapper(successCb),
-          callbackWrapper(errorCb)
-        );
-      }
-    } catch (err) {
-      errorCb(
-        err,
-        null,
-        null
-      );
-    }
-
+    await query({query: queryString, endpoint, headers}, successCb, errorCb);
     cli.action.stop('done');
   }
 };
