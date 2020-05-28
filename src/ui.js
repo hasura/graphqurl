@@ -158,7 +158,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: getIntrospectionQuery()});
+  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
