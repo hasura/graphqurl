@@ -53,8 +53,6 @@ Made with :heart: by <a href="https://hasura.io">Hasura</a>
     + [Subscriptions](#subscriptions)
   * [CLI](#cli-1)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
 
 ## Installation
 
