@@ -1,12 +1,5 @@
 # graphqurl
 
-Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like CLI for GraphQL:
-- CLI for making GraphQL queries with autocomplete
-- Run GraphiQL locally against any endpoint
-- Use as a library with Node.js or from the browser
-- Supports subscriptions
-- Export GraphQL schema
-
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/graphqurl.svg)](https://npmjs.org/package/graphqurl)
 
@@ -16,23 +9,60 @@ Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like C
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE)
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
+`graphqurl` is a curl like CLI for GraphQL. It's features include:
+- CLI for making GraphQL queries. It also provisions queries with autocomplete.
+- Run a custom GraphiQL, where you can specify request's headers, locally against any endpoint
+- Use as a library with Node.js or from the browser
+- Supports subscriptions
+- Export GraphQL schema
+
+Made with :heart: by <a href="https://hasura.io">Hasura</a>
+
 ----------------
 ![Graphqurl Demo](assets/subscription.gif)
 ---
 ![GraphiQL Demo](assets/graphiql.gif)
 ---
 ![Subscriptions triggering bash](assets/bash_trigger.gif)
+
 ----------------
+
+## Table of contents
+- [Installation](#installation)
+  * [Steps to Install CLI](#steps-to-install-cli)
+  * [Steps to Install Node Library](#steps-to-install-node-library)
+- [Usage](#usage)
+  * [CLI](#cli)
+    + [Query](#query)
+    + [Auto-complete](#auto-complete)
+    + [GraphiQL](#graphiql)
+    + [Subscription](#subscription)
+    + [Export schema](#export-schema)
+  * [Command](#command)
+    + [Args](#args)
+    + [Flag Reference](#flag-reference)
+  * [Node Library](#node-library)
+    + [Using callbacks:](#using-callbacks-)
+    + [Using Promises:](#using-promises-)
+  * [API](#api)
+    + [createClient(options)](#createclient-options-)
+    + [Client](#client)
+- [More Examples](#more-examples)
+  * [Node Library](#node-library-1)
+    + [Queries and Mutations](#queries-and-mutations)
+    + [Subscriptions](#subscriptions)
+  * [CLI](#cli-1)
+
 
 ## Installation
 
-### CLI
+### Steps to Install CLI
 
 ```bash
 npm install -g graphqurl
 ```
 
-### Node Library
+### Steps to Install Node Library
 
 ```bash
 npm install --save graphqurl
@@ -52,7 +82,7 @@ gq https://my-graphql-endpoint/graphql \
 
 #### Auto-complete
 
-GraphQURL can auto-complete queries using schema introspection. Execute the
+Graphqurl can auto-complete queries using schema introspection. Execute the
 command without providing a query string:
 
 ```bash
@@ -105,20 +135,22 @@ $ gq ENDPOINT [-q QUERY]
 
 * `ENDPOINT`: graphql endpoint (can be also set as `GRAPHQURL_ENDPOINT` env var)
 
-#### Options
+#### Flag Reference
 
-- `-q, --query=query`: graphql query to execute
-- `-H, --header="key:value"`: request header
-- `-v, --variable="key=value"`: variables used in the query
-- `-n, --name=name`: name of the graphql definition to execute, use only if there are multiple definitions
-- `--queryFile=/path/to/queryfile`: file to read the query from
-- `--variablesFile=/path/to/variablefile`: file to read the query variables from
-- `-i, --graphiql`: open graphiql with the given endpoint, headers, query and variables
-- `-p, --graphiqlPort=graphiqlPort`: [default: 4500] port to use for graphiql
-- `-a, --graphiqlAddress=graphiqlAddress`: [default: localhost] address to use for graphiql
-- `-l, --singleLine`: show output in a single line, do not prettify
-- `--version`: show CLI version
-- `-h, --help`: show CLI help
+| Flag                | Shorthand | Description                                                                                           |
+|---------------------|-----------|-------------------------------------------------------------------------------------------------------|
+| `--query`           | `-q`      | GraphQL query to execute                                                                              |
+| `--header`          | `-H`      | request header                                                                                        |
+| `--variable`        | `-v`      | Variables used in the query                                                                           |
+| `--variablesJSON`   | `-n`      | Variables used in the query as JSON                                                                   |
+| `--graphiql`        | `-i`      | Open GraphiQL with the given endpoint, headers, query and variables                                   |
+| `--graphiqlAddress` | `-a`      | Address to use for GraphiQL. (Default: `localhost`)                                                   |
+| `--graphiqlPort`    | `-p`      | Port to use for GraphiQL                                                                              |
+| `--singleLine`      | `-l`      | Prints output in a single line, does not prettify                                                     |
+| `--introspect`      |           | Introspect the endpoint and get schema                                                                |
+| `--format`          |           | Output format for GraphQL schema after introspection. Options: `json`, `graphql` (Default: `graphql`) |
+| `--help`            | `-h`      | Outputs the command help text                                                                         |
+| `--version`         |           | Outputs CLI version                                                                                   |
 
 ### Node Library
 

@@ -1,5 +1,5 @@
 const {cloneObject, wsScheme} = require('./utils');
-const fetch = require('node-fetch');
+const fetch = require('isomorphic-fetch');
 const WebSocket = require('isomorphic-ws');
 const {
   GQL_CONNECTION_INIT,
