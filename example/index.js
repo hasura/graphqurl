@@ -1,4 +1,4 @@
-const {createClient} = require('graphqurl');
+const {createClient} = require('..');
 
 const client = createClient({
   endpoint: 'http://schema-stitching-blog.herokuapp.com/v1/graphql',
