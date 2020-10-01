@@ -16,13 +16,24 @@ Made by the team at [hasura.io](https://hasura.io), `graphqurl` is a curl like C
 [![License](https://img.shields.io/npm/l/graphqurl.svg)](https://github.com/hasura/graphqurl/blob/master/LICENSE)
 <!--[![Codecov](https://codecov.io/gh/hasura/graphqurl/branch/master/graph/badge.svg)](https://codecov.io/gh/hasura/graphqurl)-->
 
-----------------
+## Table of contents
+
+- [Demos](#Demos)
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [Examples](#More-Examples)
+
+## Demos
+
+### Graphqurl Demo
 ![Graphqurl Demo](assets/subscription.gif)
----
+
+### GraphiQL Demo
 ![GraphiQL Demo](assets/graphiql.gif)
----
+
+### Subscriptions triggering bash
 ![Subscriptions triggering bash](assets/bash_trigger.gif)
-----------------
+
 
 ## Installation
 
