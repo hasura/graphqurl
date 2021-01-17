@@ -1,5 +1,5 @@
 const Express = require('express');
-const opn = require('opn');
+const opn = require('open');
 const path = require('path');
 
 const runGraphiQL = (endpoint, query, headers, variables, address, port) => {
