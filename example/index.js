@@ -1,37 +1,33 @@
 const {createClient} = require('..');
 
 const client = createClient({
-  endpoint: 'http://schema-stitching-blog.herokuapp.com/v1/graphql',
+  endpoint: 'https://graphqurl-demo.hasura.app/v1/graphql',
 });
 
-console.dir("Executing query 'query { game { id ip multiplayer name type } }': ");
+console.dir("Executing query 'query { menu_items { name } }': ");
 client.query(
   {
-    query: 'query { game { id ip multiplayer name type } }',
+    query: 'query { menu_items { name } }',
   }
-).then(response => console.dir(response))
+).then(response => console.log(JSON.stringify(response)))
 .catch(error => console.error(error));
 
-console.dir("Executing mutation: 'mutation {delete_game(where: {id: {_eq: 2}}) {returning {id ip multiplayer name type}}}'");
+console.dir("Executing mutation: 'mutation {delete_menu_items(where: {name: {_eq: \"pasta\"}}){ returning { name }}}'");
 client.query(
   {
-    query: 'mutation ($id: Int) {delete_game(where: {id: {_eq: $id}}) {returning {id ip multiplayer name type}}}',
-    variables: {id: 1},
+    query: 'mutation ($name: String) {delete_menu_items(where: {name: {_eq: $name}}) {returning {name}}}',
+    variables: {name: 'pizza'},
   }
-).then(() => console.dir('Successfully executed delete mutation.'))
+).then(() => console.log('Successfully executed delete mutation.'))
 .catch(error => console.error(error));
 
-console.dir("Executing insert mutation: 'mutation {insert_game(objects: {id: 1, ip: \"10.11.12.13:27015\", multiplayer: true, name: \"DotA\", type: \"Strategy\"}) {returning {id ip multiplayer name type}}}'");
+console.dir("Executing insert mutation: 'mutation {insert_menu_items(objects: {name: \"pasta\",}) {returning {name}}}'");
 client.query(
   {
-    query: 'mutation ($id: Int, $ip: String, $multiplayer: Boolean, $name: String, $type: String) {insert_game(objects: {id: $id, ip: $ip, multiplayer: $multiplayer, name: $name, type: $type}) {returning {id ip multiplayer name type}}}',
+    query: 'mutation ($name: String) {insert_menu_items(objects: {name: $name}) {returning {name}}}',
     variables: {
-      id: 1,
-      ip: '10.11.12.13:27015',
-      multiplayer: true,
-      name: 'DotA',
-      type: 'Strategy',
+      name: 'pasta',
     },
   }
-).then(() => console.dir('Successfully executed insert mutation'))
+).then(() => console.log('Successfully executed insert mutation'))
 .catch(error => console.error(error));
