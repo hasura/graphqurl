@@ -12,6 +12,7 @@
     "no-throw-literal": "off",
     "node/no-unsupported-features": "off",
     "no-warning-comments": "off",
-    "semi": [1, "always"]
+    "semi": [1, "always"],
+    "no-await-in-loop": "off"
   }
 }

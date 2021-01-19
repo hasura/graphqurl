@@ -1,7 +1,5 @@
-const query = require('./query');
-const Client = require('./client');
+const createClient = require('./client');
 
 module.exports = {
-  query,
-  Client,
+  createClient,
 };

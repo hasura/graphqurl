@@ -1,9 +1,10 @@
 const tk = require('terminal-kit');
-const {introspectionQuery, buildClientSchema, parse} = require('graphql');
+const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
 const {cli} = require('cli-ux');
-const query = require('./query');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
+const makeClient = require('./client');
+const query = require('./query.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
@@ -153,7 +154,11 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   } = queryOptions;
   cli.action.start('Introspecting schema');
-  const schemaResponse = await query({endpoint: endpoint, query: introspectionQuery, headers: headers});
+  let client = makeClient({
+    endpoint,
+    headers,
+  });
+  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
@@ -164,8 +169,9 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
-    /* eslint-disable-next-line no-await-in-loop */
-    await query(Object.assign({}, queryOptions, {query: queryString}), successCb, errorCb);
+    cli.action.start('Waiting');
+    await query({query: queryString, endpoint, headers}, successCb, errorCb);
+    cli.action.stop('done');
   }
 };
 

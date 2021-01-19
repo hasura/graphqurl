@@ -1,17 +1,12 @@
-const query = require('./query');
 const {Command, flags} = require('@oclif/command');
-const {cli} = require('cli-ux');
 const {CLIError} = require('@oclif/errors');
-const fs = require('fs');
 const url = require('url');
-const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
-const {introspectionQuery} = require('graphql');
-
-// Convert fs.readFile into Promise version of same
-const readFile = util.promisify(fs.readFile);
+const {getIntrospectionQuery} = require('graphql');
+const {cli} = require('cli-ux');
+const query = require('./query.js');
 
 class GraphqurlCommand extends Command {
   async run() {
@@ -36,7 +31,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.introspect) {
-      queryString = introspectionQuery;
+      queryString = getIntrospectionQuery();
     }
 
     this.args = args;
@@ -56,7 +51,6 @@ class GraphqurlCommand extends Command {
         variables,
         name: flags.name,
       }, successCallback, errorCallback);
-      return;
     }
 
     const queryOptions = {
@@ -96,10 +90,6 @@ class GraphqurlCommand extends Command {
   }
 
   async getQueryString(args, flags) {
-    if (flags.queryFile) {
-      const fileContent = await readFile(flags.queryFile);
-      return fileContent;
-    }
     if (flags.query) {
       return flags.query;
     }
@@ -109,7 +99,6 @@ class GraphqurlCommand extends Command {
   async getQueryVariables(args, flags) {
     let possibleFlags = [
       flags.variable,
-      flags.variablesFile,
       flags.variablesJSON,
     ];
     let flagsCount = 0;
@@ -127,13 +116,6 @@ class GraphqurlCommand extends Command {
         variablesObject = JSON.parse(flags.variablesJSON);
       } catch (err) {
         this.error(`error parsing --variablesJSON: ${err}`);
-      }
-    }
-    if (flags.variablesFile) {
-      try {
-        variablesObject = JSON.parse(await readFile(flags.variablesFile));
-      } catch (err) {
-        this.error(`error reading and parsing --variablesFile: ${err}`);
       }
     }
     if (flags.variable) {
@@ -228,22 +210,6 @@ GraphqurlCommand.flags = {
     char: 'j',
     description: 'query variables as JSON string',
     multiple: false,
-  }),
-
-  // file to read query from
-  queryFile: flags.string({
-    description: 'file to read the query from',
-  }),
-
-  // file to read variables from
-  variablesFile: flags.string({
-    description: 'file to read the query variables from (JSON file)',
-  }),
-
-  // name of the query/mutation/subscription to execute
-  name: flags.string({
-    char: 'n',
-    description: 'name of the graphql definition to execute, use only if there are multiple definitions',
   }),
 
   // run graphiql

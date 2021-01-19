@@ -1,8 +1,7 @@
-const {query} = require('..');
 const hgeUrl = process.env.GRAPHQURL_TEST_GRAPHQL_ENGINE_URL || 'http://localhost:8080';
 const accessKey = process.env.GRAPHQURL_TEST_X_HASURA_ACCESS_KEY || '12345';
 
-const testQueryPromise = async () => {
+const testQueryPromise = async client => {
   const queryOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
     query: `query ($id:Int) {
@@ -19,7 +18,7 @@ const testQueryPromise = async () => {
   };
   let response;
   try {
-    response = await query(queryOpts);
+    response = await client.query(queryOpts);
     if (response.data.graphqurl_test.length === 1) {
       console.log('✔︎ Query with promise');
     } else {
@@ -34,7 +33,7 @@ const testQueryPromise = async () => {
   }
 };
 
-const testQueryCallback = async () => {
+const testQueryCallback = async client => {
   const queryOpts = {
     endpoint: `${hgeUrl}/v1alpha1/graphql`,
     query: `query ($id:Int) {
@@ -50,7 +49,7 @@ const testQueryCallback = async () => {
     },
   };
   let respLength;
-  await query(
+  await client.query(
     queryOpts,
     resp => {
       respLength = resp.data.graphqurl_test.length;

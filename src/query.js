@@ -1,20 +1,18 @@
-const {HttpLink} = require('apollo-link-http');
-const {ApolloClient} = require('apollo-client');
-const fetch = require('node-fetch');
-const {InMemoryCache} = require('apollo-cache-inmemory');
-const gql = require('graphql-tag');
-const {makeObservable} = require('./utils');
+const makeClient = require('./client');
+const {wsScheme} = require('./utils');
+const {parse} = require('graphql');
 
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;
-  const client = new ApolloClient({
-    link: new HttpLink({uri: endpoint, fetch: fetch}),
-    cache: new InMemoryCache(),
+  let client = makeClient({
+    endpoint,
+    headers,
   });
 
   let input, queryType;
   try {
-    input = gql`${query}`;
+    input = parse(query);
+
     if (input.definitions && input.definitions.length > 0) {
       if (name) {
         if (input.definitions.length > 1) {
@@ -70,65 +68,38 @@ const query = async function (options, successCb, errorCb) {
       input
     );
   }
-  let q;
-  try {
-    if (queryType === 'query') {
-      q = client.query({
-        query: input,
-        variables,
-        context: {
-          headers,
-        },
-      });
-    } else if (queryType === 'mutation') {
-      q = client.mutate({
-        mutation: input,
-        variables,
-        context: {
-          headers,
-        },
-      });
-    } else if (queryType === 'subscription') {
-      q = makeObservable(input, variables, endpoint, headers, errorCb);
-    }
-  } catch (err) {
-    // console.log(err);
-    if (!errorCb) {
-      throw err;
-    }
-    errorCb(err, queryType, input);
-  }
-  let response;
+
+  const callbackWrapper = callback => data => {
+    callback(data, queryType, input);
+  };
+
   try {
     if (queryType === 'subscription') {
-      if (!successCb) {
-        return q;
-      }
-      response = q.subscribe(
-        event => {
-          successCb(event, 'subscription', input);
+      client = makeClient({
+        endpoint,
+        headers,
+        websocket: {
+          endpoint: wsScheme(endpoint),
+          onConnectionSuccess: () => {
+            client.subscribe({
+              subscription: query,
+              variables},
+            callbackWrapper(successCb),
+            callbackWrapper(errorCb)
+            );
+          },
         },
-        error => {
-          if (!errorCb) {
-            console.error(error);
-            return;
-          }
-          errorCb(error, 'subscription', input);
-        }
-      );
+      });
     } else {
-      if (!successCb) {
-        response = await q;
-        return response;
-      }
-      response = await q;
-      successCb(response, queryType, input);
+      await client.query({
+        query: query,
+        variables},
+      callbackWrapper(successCb),
+      callbackWrapper(errorCb)
+      );
     }
   } catch (err) {
-    if (!errorCb) {
-      throw err;
-    }
-    errorCb(err, queryType, input);
+    errorCb(err, null, null);
   }
 };
 
