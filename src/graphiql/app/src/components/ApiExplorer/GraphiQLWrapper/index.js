@@ -66,9 +66,7 @@ class GraphiQLWrapper extends Component {
 
     const handleCopyQuery = () => {
       const editor = graphiqlContext.getQueryEditor();
-      console.log('got editor');
       const query = editor.getValue();
-      console.log('got query')
       if (!query) {
         return;
       }
