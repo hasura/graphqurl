@@ -10,52 +10,11 @@ const host = appconfig.hmrHost;
 const port = appconfig.hmrPort;
 
 const autoprefixer = require('autoprefixer');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-  .BundleAnalyzerPlugin;
 
 const WebpackIsomorphicToolsPlugin = require('webpack-isomorphic-tools/plugin');
 const webpackIsomorphicToolsPlugin = new WebpackIsomorphicToolsPlugin(
   require('./webpack-isomorphic-tools')
 );
-
-// const { UnusedFilesWebpackPlugin } = require('unused-files-webpack-plugin');
-
-const babelrc = fs.readFileSync('./.babelrc');
-let babelrcObject = {};
-
-try {
-  babelrcObject = JSON.parse(babelrc);
-} catch (err) {
-  console.error('==>     ERROR: Error parsing your .babelrc.');
-  console.error(err);
-}
-
-const babelrcObjectDevelopment =
-  (babelrcObject.env && babelrcObject.env.development) || {};
-const babelLoaderQuery = Object.assign(
-  {},
-  babelrcObject,
-  babelrcObjectDevelopment
-);
-delete babelLoaderQuery.env;
-
-babelLoaderQuery.plugins = babelLoaderQuery.plugins || [];
-if (babelLoaderQuery.plugins.indexOf('react-transform') < 0) {
-  babelLoaderQuery.plugins.push('react-transform');
-}
-
-babelLoaderQuery.extra = babelLoaderQuery.extra || {};
-if (!babelLoaderQuery.extra['react-transform']) {
-  babelLoaderQuery.extra['react-transform'] = {};
-}
-if (!babelLoaderQuery.extra['react-transform'].transforms) {
-  babelLoaderQuery.extra['react-transform'].transforms = [];
-}
-babelLoaderQuery.extra['react-transform'].transforms.push({
-  transform: 'react-transform-hmr',
-  imports: ['react'],
-  locals: ['module'],
-});
 
 module.exports = {
   mode: 'development',
@@ -167,7 +126,6 @@ module.exports = {
   },
   plugins: [
     // hot reload
-    // new UnusedFilesWebpackPlugin({}),
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery',
@@ -176,7 +134,6 @@ module.exports = {
     new webpack.LoaderOptionsPlugin({
       postcss: [autoprefixer],
     }),
-    // new BundleAnalyzerPlugin(),
     new webpack.IgnorePlugin(/webpack-stats\.json$/),
     new webpack.DefinePlugin({
       __CLIENT__: true,

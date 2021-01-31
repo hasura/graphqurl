@@ -2,11 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 import {
-  changeRequestParams,
   addRequestHeader,
   changeRequestHeader,
   removeRequestHeader,
-  updateFileObject,
   focusHeaderTextbox,
   unfocusTypingHeader,
 } from './Actions';
@@ -23,10 +21,6 @@ class ApiRequest extends Component {
     this.state.bodyAllowedMethods = ['POST'];
     this.state.tabIndex = 0;
   }
-
-  onRequestParamsChanged = newValue => {
-    this.props.dispatch(changeRequestParams(newValue));
-  };
 
   onHeaderValueChanged(e) {
     const index = parseInt(e.target.getAttribute('data-header-id'), 10);
@@ -283,12 +277,6 @@ class ApiRequest extends Component {
   handleBlur = () => {
     this.props.dispatch(unfocusTypingHeader());
   };
-
-  handleFileChange(e) {
-    if (e.target.files.length > 0) {
-      this.props.dispatch(updateFileObject(e.target.files[0]));
-    }
-  }
 
   render() {
     return (

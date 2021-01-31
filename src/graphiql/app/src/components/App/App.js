@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import ProgressBar from 'react-progress-bar-plus';
-import Notifications from 'react-notification-system-redux';
 import Modal from 'react-bootstrap/lib/Modal';
 import './progress-bar.scss';
 import { NOTIF_EXPANDED } from './Actions';
@@ -74,10 +73,6 @@ class App extends Component {
             />
           )}
           <div>{children}</div>
-          <Notifications
-            notifications={notifications}
-            style={notificationStyle}
-          />
           <Modal
             show={isNotifExpanded}
             onHide={this.onModalClose}
