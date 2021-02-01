@@ -10,142 +10,111 @@ const query = require('./query.js');
 
 var term = tk.terminal;
 
-let qs = '';
-let p = new Position(1, 0);
 let ib;
-let qReady = false;
 let schema;
-let menuOn = false;
 let exit = false;
-let gResolve, gReject;
 
 const terminate = error => {
   term.nextLine(1);
   term.grabInput(false);
   term.fullscreen(false);
-  if (error) {
-    gReject(error);
-    return;
+};
+
+const input = (history, value) => {
+  if (ib) {
+    ib.abort();
   }
-  gResolve(qs);
-};
+  let opts = { default: value, ...inputOpts(history) };
+  ib = term.inputField(opts);
+  return ib;
+}
 
-// const ibOpts = {}
-const ibCb = error => {
-  if (error) {
-    terminate(error);
+const suggestField = (inputString) => {
+  let position = ib.getCursorPosition();
+  let bStack = [];
+  let qs = inputString.slice(0, position + 1);
+  let p = new Position(position, 0);
+
+  for (let c of qs) {
+    if (c === '{' || c === '(' || c === '[') {
+      bStack.push(c);
+    }
+    if (c === '}' || c === ')' || c === ']') {
+      bStack.pop();
+    }
   }
-};
+  let items = getAutocompleteSuggestions(schema, qs, p).map(item => item.label);
 
-const inputLine = d => {
-  term('gql> ');
-  ib = term.inputField({
-    default: d || '',
-  }, ibCb);
-  qReady = true;
-};
+  let bStackACS = bStack.map(c => {
+    switch (c) {
+    case '{':
+      return '}';
+    case '(':
+      return ')';
+    case '[':
+      return ']';
+    }
+    return undefined;
+  });
 
-const mOpts = {
-  style: term.inverse,
-  selectedStyle: term.dim.blue.bgGreen,
-  exitOnUnexpectedKey: true,
+  if (bStackACS.length > 0) {
+    items.unshift(bStackACS[bStackACS.length - 1]);
+  }
+
+  if (items.length == 0) { 
+    return inputString;
+  }
+
+  items.prefix = inputString.replace(/\w+$/, '');
+
+  return items;
+}
+
+const inputOpts = (history) => {
+  return {
+    history: history,
+    autoComplete: suggestField,
+    autoCompleteMenu: true
+  };
 };
-let mItems = [];
 
 term.on('key', async function (key) {
   if (key === 'CTRL_C') {
     terminate('cancelled');
   }
-
-  if (qReady) {
-    if (key === 'CTRL_Q') {
-      // exit = true;
-      qs = ib.getInput();
-      ib.abort();
-      terminate();
-    }
-
-    if ((key === 'ENTER' || key === 'KP_ENTER') && !menuOn) {
-      qs = ib.getInput();
-      try {
-        const errors = await validateQuery(parse(qs), schema);
-        if (errors.length === 0) {
-          ib.abort();
-          terminate();
-        }
-      } catch (err) {
-        ib.abort();
-        term.eraseLine();
-        term.left(qs.length + 5);
-        inputLine(qs);
-      }
-    }
-
-    if (key === 'TAB' && !menuOn) {
-      qs = ib.getInput();
-      let bStack = [];
-      for (let c of qs) {
-        if (c === '{' || c === '(' || c === '[') {
-          bStack.push(c);
-        }
-        if (c === '}' || c === ')' || c === ']') {
-          bStack.pop();
-        }
-      }
-      p.setCharacter(qs.length);
-      let acs = getAutocompleteSuggestions(schema, qs, p);
-      acs = acs.map(o => o.label);
-
-      let bStackACS = bStack.map(c => {
-        switch (c) {
-        case '{':
-          return '}';
-        case '(':
-          return ')';
-        case '[':
-          return ']';
-        }
-        return undefined;
-      });
-
-      if (bStackACS.length > 0) {
-        acs.unshift(bStackACS[bStackACS.length - 1]);
-      }
-
-      mItems = acs;
-      menuOn = true;
-      let resp = qs;
-      try {
-        let r = await term.singleLineMenu(mItems, mOpts).promise;
-
-        // TODO: need better logic here
-        const brackets = ['{', '(', '[', '}', ')', ']'];
-        let tokens = qs.split(/[^A-Za-z_1-9]/);
-        let lastToken = tokens.pop();
-        if (r.selectedText && brackets.indexOf(r.selectedText) > -1) {
-          resp = qs + r.selectedText;
-        } else {
-          resp = qs.replace(new RegExp(lastToken + '$'), r.selectedText || '');
-        }
-
-        ib.abort();
-        term.eraseLine();
-        term.previousLine();
-        term.eraseLine();
-        inputLine(resp);
-      } catch (e) {
-      }
-      menuOn = false;
-    }
+  if (key === 'CTRL_D') {
+    console.log('Goodbye!');
+    terminate('cancelled');
   }
 });
 
-const getQueryFromTerminalUI = ()  => {
-  return new Promise((resolve, reject) => {
-    gResolve = resolve;
-    gReject = reject;
-    inputLine();
+const getQueryFromTerminalUI = (history, value)  => {
+  return getValidQuery(history, value).catch(invalidStr => {
+    return getQueryFromTerminalUI(history, invalidStr)
   });
+};
+
+const getValidQuery = async (history, value) => {
+  term('gql> ');
+  const qs = await input(history, value).promise;
+  let errors;
+
+  try {
+    errors = await validateQuery(parse(qs), schema);
+  } catch(e) {
+    errors = [e]
+  }
+
+  if (errors.length > 0) { 
+    term.nextLine(1);
+    term.bold('Invalid query\n');
+    errors.forEach(e => {
+      term.red(e.message + '\n');
+    });
+    throw qs;
+  }
+
+  return qs;
 };
 
 const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
@@ -158,7 +127,8 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
+  const introspectionOpts = {query: getIntrospectionQuery()};
+  const schemaResponse = await client.query(introspectionOpts, null, errorCb);
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
@@ -166,9 +136,11 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   console.log('Enter the query, use TAB to auto-complete, Ctrl+Q / Enter to execute, Ctrl+C to cancel');
 
   /* eslint-disable-next-line no-unmodified-loop-condition */
+  const history = [];
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
-    const queryString = await getQueryFromTerminalUI();
+    const queryString = await getQueryFromTerminalUI(history.slice());
+    history.push(queryString);
     cli.action.start('Waiting');
     await query({query: queryString, endpoint, headers}, successCb, errorCb);
     cli.action.stop('done');
