@@ -1,6 +1,7 @@
 const tk = require('terminal-kit');
 const xdg = require('@folder/xdg');
 const path = require('path');
+const crypto = require('crypto');
 const fs = require('fs');
 const {promisify} = require('util');
 const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
@@ -16,7 +17,6 @@ var term = tk.terminal;
 
 let ib;
 let cancel;
-let schema;
 let exit = false;
 
 const directories = xdg({subdir: 'graphqurl'});
@@ -33,7 +33,7 @@ const terminate = () => {
   term.fullscreen(false);
 };
 
-const suggestField = inputString => {
+const suggestField = schema => inputString => {
   let position = ib.getCursorPosition();
   let bStack = [];
   let qs = inputString.slice(0, position + 1);
@@ -74,13 +74,15 @@ const suggestField = inputString => {
   return items;
 };
 
-const autocompletion = {autoComplete: suggestField, autoCompleteMenu: true};
+const autocompletion = schema => {
+  return {autoComplete: suggestField(schema), autoCompleteMenu: true};
+};
 
-const input = (history, value) => {
+const input = (schema, history, value) => {
   if (ib) {
     ib.abort();
   }
-  let opts = {default: value, history, ...autocompletion};
+  let opts = {default: value, history, ...autocompletion(schema)};
   ib = term.inputField(opts);
   return ib;
 };
@@ -93,9 +95,9 @@ term.on('key', async function (key) {
   }
 });
 
-const getValidQuery = async (history, value) => {
+const getValidQuery = async (schema, history, value) => {
   term('gql> ');
-  const qs = await input(history, value).promise;
+  const qs = await input(schema, history, value).promise;
   let errors;
 
   try {
@@ -116,11 +118,11 @@ const getValidQuery = async (history, value) => {
   return qs;
 };
 
-const getQueryFromTerminalUI = (history, value)  => {
-  return getValidQuery(history.slice(), value).catch(invalidStr => {
+const getQueryFromTerminalUI = (schema, history, value)  => {
+  return getValidQuery(schema, history.slice(), value).catch(invalidStr => {
     if (exit) return Promise.resolve(undefined);
 
-    return getQueryFromTerminalUI(history, invalidStr);
+    return getQueryFromTerminalUI(schema, history, invalidStr);
   });
 };
 
@@ -151,22 +153,61 @@ const loadHistory = async () => {
   }
 };
 
+const TWO_HOURS_MILLIS = 60 * 60 * 1000;
+
+const getSchema = async (client, errorCb) => {
+  const hash = crypto.createHash('sha256');
+  hash.update(JSON.stringify(client.options));
+
+  cli.action.start('Introspecting schema');
+  const introspectionOpts = {query: getIntrospectionQuery()};
+  hash.update(JSON.stringify(introspectionOpts));
+  let hex = hash.digest('hex');
+  let cacheName = path.join(directories.cache, 'schema_' + hex + '.json');
+  let stats = await promisify(fs.stat)(cacheName).catch(() => null);
+  let r;
+
+  if (stats && Date.now() - stats.mtime.getTime() <= TWO_HOURS_MILLIS) {
+    let cached = await promisify(fs.readFile)(cacheName, 'utf8').catch(() => null);
+    if (cached) {
+      try {
+        r = JSON.parse(cached);
+      } catch (e) {
+        fs.unlink(cacheName, () => {});
+      }
+    }
+  }
+
+  if (!r) {
+    const schemaResponse = await client.query(introspectionOpts, null, errorCb);
+    r = schemaResponse.data;
+
+    fs.mkdir(directories.cache, {recursive: true}, err => {
+      if (err) return;
+      fs.writeFile(cacheName, JSON.stringify(r), 'utf8', err => {
+        if (!err) return;
+        console.warn('Could not write schema to cache file');
+      });
+    });
+  }
+
+  cli.action.stop('done');
+  // term.fullscreen(true);
+  return buildClientSchema(r);
+};
+
 const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
   const {
     endpoint,
     headers,
   } = queryOptions;
-  cli.action.start('Introspecting schema');
+
   let client = makeClient({
     endpoint,
     headers,
   });
-  const introspectionOpts = {query: getIntrospectionQuery()};
-  const schemaResponse = await client.query(introspectionOpts, null, errorCb);
-  cli.action.stop('done');
-  const r = schemaResponse.data;
-  // term.fullscreen(true);
-  schema = buildClientSchema(r);
+
+  let schema = await getSchema(client, errorCb);
 
   /* eslint-disable-next-line no-unmodified-loop-condition */
   let history = await loadHistory();
@@ -179,7 +220,8 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   let queryString;
 
   do {
-    queryString = await Promise.race([getQueryFromTerminalUI(history), cancellation]);
+    let promise = getQueryFromTerminalUI(schema, history);
+    queryString = await Promise.race([promise, cancellation]);
     if (queryString) {
       history.push(queryString);
       cli.action.start('Waiting');
