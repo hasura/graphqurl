@@ -199,6 +199,7 @@ const makeClient = options => {
     query: executeQuery,
     subscribe: subscribe,
     updateHeaders,
+    options,
   };
 };
 

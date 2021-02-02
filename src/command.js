@@ -45,7 +45,7 @@ class GraphqurlCommand extends Command {
     };
 
     if (queryString === null) {
-      queryString = await executeQueryFromTerminalUI({
+      return executeQueryFromTerminalUI({
         endpoint: endpoint,
         headers,
         variables,
