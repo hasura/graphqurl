@@ -13,7 +13,10 @@ const query = require('./query.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
-const KINDS = ['query', 'mutation', 'fragment', 'import', 'let'];
+const KINDS = [
+  'query', 'mutation', 'fragment', 'import',
+  'let', 'help', 'type', 'quit'
+];
 
 var term = tk.terminal;
 
@@ -31,6 +34,7 @@ const terminate = () => {
   if (cancel) {
     cancel();
   }
+  cancel = undefined;
   term.nextLine(1);
   term.grabInput(false);
   term.fullscreen(false);
@@ -71,6 +75,10 @@ const suggest = schema => inputString => {
     return suggestQueryField(schema, inputString);
   case 'let':
     return suggestVariables(schema, inputString);
+  case 'type':
+  case 'help':
+  case 'quit':
+    return inputString;
   }
   return KINDS;
 }
@@ -211,6 +219,9 @@ const getValidQuery = async (schema, history, value) => {
   let expr;
 
   switch (kind) {
+  case 'help':
+  case 'quit':
+    return {kind};
   case 'query':
   case 'mutation':
     expr = await queryExpression(qs, schema);
@@ -221,8 +232,9 @@ const getValidQuery = async (schema, history, value) => {
     reportErrors(kind, qs, expr.errors);
     return expr;
   case 'fragment':
+  case 'type':
   case 'import':
-    term.red(`cannot define ${kind}\n`); // TODO
+    term.red(`Not implemented: ${kind}\n`); // TODO
     return {kind};
   }
   throw qs;
@@ -365,6 +377,20 @@ const getSchema = async (client, errorCb) => {
   return buildClientSchema(r);
 };
 
+function printHelp() {
+  term.bold('Commands:\n')
+
+  term.table([
+    [ 'query {..}', 'Run a query' ],
+    [ 'mutation {..}', 'Run a mutation' ],
+    [ 'let [name] : [type] = [value]', 'Define a variable' ],
+    [ 'fragment [name] on [type] { .. }', 'Define a fragment' ],
+    [ 'import [file]', 'Import fragments from a file' ],
+    [ 'type [path]', 'Get type information about a path' ],
+    [ 'help', 'Print this help information' ]
+  ], {width: 72});
+}
+
 const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
   const {
     endpoint,
@@ -383,7 +409,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
 
   console.log('Enter the query, use TAB to auto-complete, Enter to execute, Ctrl+C to cancel');
   let cancellation = new Promise((resolve, _) => {
-    cancel = () => resolve({kind: 'done'});
+    cancel = () => resolve({kind: 'quit'});
   });
 
   let loop = true;
@@ -392,8 +418,12 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     let promise = getQueryFromTerminalUI(schema, history);
     res = await Promise.race([promise, cancellation]);
     switch (res.kind) {
-    case 'done':
+    case 'quit':
       loop = false;
+      terminate();
+      break;
+    case 'help':
+      printHelp();
       break;
     case 'query':
     case 'mutation':
