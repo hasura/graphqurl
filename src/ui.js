@@ -4,7 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 const {promisify} = require('util');
-const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
+const {GraphQLScalarType, GraphQLInputObjectType, getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
 const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
@@ -20,7 +20,7 @@ var term = tk.terminal;
 let ib;
 let cancel;
 let fragments = [];
-let variables = [];
+let variables = new Map();
 
 const directories = xdg({subdir: 'graphqurl'});
 
@@ -48,6 +48,17 @@ const inputKind = inputString => {
   }
 }
 
+function inputTypes(schema) {
+  if (!schema.inputTypes) {
+    let types = schema.getTypeMap();
+    schema.inputTypes = Object.values(types).filter(type => {
+      return (type instanceof GraphQLScalarType || type instanceof GraphQLInputObjectType);
+    });
+  }
+
+  return schema.inputTypes;
+}
+
 const suggest = schema => inputString => {
   switch (inputKind(inputString)) {
   case 'import':
@@ -59,9 +70,55 @@ const suggest = schema => inputString => {
   case 'fragment':
     return suggestQueryField(schema, inputString);
   case 'let':
-    return suggestVariables(inputString);
+    return suggestVariables(schema, inputString);
   }
   return KINDS;
+}
+
+function suggestVariables(schema, inputString) {
+  let completions;
+  let tokens = inputString.split(/(\s+|\b)/).filter(s => {
+    return (s !== '' && !/^\s+$/.test(s));
+  });
+  let endsWithSpace = inputString.endsWith(' ');
+
+  if (tokens.length === 1) {
+    completions = variables.keys().slice();
+    completions.prefix = inputString
+    return completions;
+  } else if (tokens.length === 2 && !endsWithSpace) {
+    let name = tokens[1];
+    completions = [name + ' =', name + ' :'];
+    for (let v of variables.keys()) {
+      if (v.startsWith(name)) {
+        completions.push(v);
+      }
+    }
+    completions.prefix = 'let ';
+    return completions;
+  } else if (tokens.length === 2) {
+    completions = [' =', ' :'];
+    completions.prefix = tokens.join(' ');
+    return completions;
+  } else if (tokens.length === 3 && tokens[2] == ':') {
+    completions = inputTypes(schema).map(t => t.name);
+    completions.prefix = tokens.join(' ') + ' ';
+    return completions;
+  } else if (tokens.length === 4 && tokens[2] == ':') {
+    if (endsWithSpace) {
+      completions = ['='];
+    } else {
+      let type = tokens[3];
+      let types = inputTypes(schema)
+        .map(t => t.name)
+        .filter(tn => tn.startsWith(type));
+      tokens.pop();
+      completions = [type + ' =', ...types];
+    }
+    completions.prefix = tokens.join(' ') + ' ';
+    return completions;
+  }
+  return inputString;
 }
 
 function suggestImports(inputString) {
@@ -130,58 +187,110 @@ term.on('key', async function (key) {
   }
 });
 
+function printState() {
+  if (fragments.length > 0) {
+    term(`Fragments: ${fragments.map(i => i.name).join(', ')}\n`);
+  }
+  if (variables.size > 0) {
+    term.bold('Variables\n');
+    let table = [['name', 'type', 'value']];
+    for (let expr of variables.values()) {
+      table.push([expr.name, expr.type, expr.value]);
+    }
+    term.table(table, {firstRowTextAttr: {bold: true}, width: 60, fit: true});
+  }
+}
+
 const getValidQuery = async (schema, history, value) => {
+  printState();
   term('gql> ');
   const qs = await input(schema, history, value).promise;
   term('\n');
 
   let kind = inputKind(qs);
+  let expr;
 
   switch (kind) {
   case 'query':
   case 'mutation':
-    let errors = await onQuery(qs, schema);
-    reportErrors(kind, errors);
-
-    if (errors.length > 0) {
-      throw qs;
-    }
-
-    return {kind: 'query', input: qs};
-  case 'fragment':
+    expr = await queryExpression(qs, schema);
+    reportErrors(kind, qs, expr.errors);
+    return expr;
   case 'let':
+    expr = letExpression(qs);
+    reportErrors(kind, qs, expr.errors);
+    return expr;
+  case 'fragment':
   case 'import':
-    reportErrors(kind, [{message: `cannot define ${kind}`}]); // TODO
-    return {kind: kind};
+    term.red(`cannot define ${kind}\n`); // TODO
+    return {kind};
   }
   throw qs;
 };
 
-function reportErrors(kind, errors) {
+function letExpression(string) {
+  const pattern = /let\s+(?<name>\w+)(\s*:\s*(?<type>\w+))?\s*=\s*(?<value>.+)/;
+  const match = pattern.exec(string);
+
+  if (!match) {
+    return {kind: 'let', errors: [{message: 'Illegal let expression'}]};
+  }
+
+  const expr = {kind: 'let', ...match.groups};
+  expr.value = expr.value.replace(/(^\s+|\s+$)/g, '');
+
+  if (!expr.type) {
+    if (/^\d+\.\d+$/.test(expr.value)) {
+      expr.type = 'Float';
+    } else if (/^\d+$/.test(expr.value)) {
+      expr.type = 'Int';
+    } else if (/^".*"$/.test(expr.value)) {
+      expr.type = 'String';
+    } else if (/^(true|false)$/.test(expr.value)) {
+      expr.type = 'Boolean';
+    } else {
+      expr.errors = [{message: `Cannot infer type of ${expr.value}`}];
+    }
+  }
+
+  return expr;
+}
+
+function exprToString(expr) {
+  switch (expr.kind) {
+    case 'query':
+    case 'mutation':
+      return expr.input;
+    case 'let':
+      return `let ${expr.name} : ${expr.type} = ${expr.value}`;
+  }
+}
+
+function reportErrors(kind, string, errors) {
+  if (!errors) {
+    return;
+  }
   if (errors.length > 0) {
     term.bold(`Invalid ${kind}\n`);
     errors.forEach(e => {
       term.red(e.message + '\n');
     });
+    throw string;
   }
 }
 
-async function onQuery(queryString, schema) {
+async function queryExpression(queryString, schema) {
   let errors;
   try {
     errors = await validateQuery(parse(queryString), schema);
   } catch (e) {
     errors = [e];
   }
-  return errors;
+  return {kind: 'query', input: queryString, errors};
 }
 
 const getQueryFromTerminalUI = (schema, history, value)  => {
   return getValidQuery(schema, history.slice(), value).catch(invalidStr => {
-    if (fragments.length > 0) {
-      console.log(`Fragments: ${fragments.map(i => i.name).join(', ')}`);
-    }
-
     return getQueryFromTerminalUI(schema, history, invalidStr);
   });
 };
@@ -288,10 +397,14 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
       break;
     case 'query':
     case 'mutation':
-      history.push(res.input);
+      history.push(exprToString(res));
       cli.action.start('Waiting');
       await query({query: res.input, endpoint, headers}, successCb, errorCb);
       cli.action.stop('done');
+      break;
+    case 'let':
+      history.push(exprToString(res));
+      variables.set(res.name, res);
       break;
     }
   }
@@ -299,4 +412,4 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   writeHistory(history);
 };
 
-module.exports = executeQueryFromTerminalUI;
+module.exports = executeQueryFromTerminalUI
