@@ -13,11 +13,14 @@ const query = require('./query.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
+const KINDS = ['query', 'mutation', 'fragment', 'import', 'let'];
+
 var term = tk.terminal;
 
 let ib;
 let cancel;
-let exit = false;
+let fragments = [];
+let variables = [];
 
 const directories = xdg({subdir: 'graphqurl'});
 
@@ -33,37 +36,47 @@ const terminate = () => {
   term.fullscreen(false);
 };
 
-const suggestField = schema => inputString => {
+const inputKind = inputString => {
+  if (!inputString) {
+    return undefined;
+  }
+
+  for (let kind of KINDS) {
+    if (inputString.startsWith(kind)) {
+      return kind;
+    }
+  }
+}
+
+const suggest = schema => inputString => {
+  switch (inputKind(inputString)) {
+  case 'import':
+    return suggestImports(inputString);
+  case 'query':
+    return suggestQueryField(schema, inputString);
+  case 'mutation':
+    return suggestQueryField(schema, inputString);
+  case 'fragment':
+    return suggestQueryField(schema, inputString);
+  case 'let':
+    return suggestVariables(inputString);
+  }
+  return KINDS;
+}
+
+function suggestImports(inputString) {
+  // TODO!!
+
+  return [];
+}
+
+function suggestQueryField(schema, inputString) {
   let position = ib.getCursorPosition();
-  let bStack = [];
   let qs = inputString.slice(0, position + 1);
   let p = new Position(position, 0);
+  let closingBrackets = [nextBracket(qs)].filter(x => x);
 
-  for (let c of qs) {
-    if (c === '{' || c === '(' || c === '[') {
-      bStack.push(c);
-    }
-    if (c === '}' || c === ')' || c === ']') {
-      bStack.pop();
-    }
-  }
-  let items = getAutocompleteSuggestions(schema, qs, p).map(item => item.label);
-
-  let bStackACS = bStack.map(c => {
-    switch (c) {
-    case '{':
-      return '}';
-    case '(':
-      return ')';
-    case '[':
-      return ']';
-    }
-    return undefined;
-  });
-
-  if (bStackACS.length > 0) {
-    items.unshift(bStackACS[bStackACS.length - 1]);
-  }
+  let items = closingBrackets.concat(getAutocompleteSuggestions(schema, qs, p).map(item => item.label));
 
   if (items.length === 0) {
     return inputString;
@@ -74,8 +87,31 @@ const suggestField = schema => inputString => {
   return items;
 };
 
+function nextBracket(queryString) {
+  let bStack = [];
+  for (let c of queryString) {
+    if (c === '{' || c === '(' || c === '[') {
+      bStack.push(c);
+    }
+    if (c === '}' || c === ')' || c === ']') {
+      bStack.pop();
+    }
+  }
+  let openBracket = bStack.pop();
+
+  switch (openBracket) {
+  case '{':
+    return '}';
+  case '(':
+    return ')';
+  case '[':
+    return ']';
+  }
+  return undefined;
+};
+
 const autocompletion = schema => {
-  return {autoComplete: suggestField(schema), autoCompleteMenu: true};
+  return {autoComplete: suggest(schema), autoCompleteMenu: true};
 };
 
 const input = (schema, history, value) => {
@@ -89,7 +125,6 @@ const input = (schema, history, value) => {
 
 term.on('key', async function (key) {
   if (key === 'CTRL_D' || key === 'CTRL_C') {
-    exit = true;
     console.log('Goodbye!');
     terminate();
   }
@@ -98,29 +133,54 @@ term.on('key', async function (key) {
 const getValidQuery = async (schema, history, value) => {
   term('gql> ');
   const qs = await input(schema, history, value).promise;
-  let errors;
+  term('\n');
 
-  try {
-    errors = await validateQuery(parse(qs), schema);
-  } catch (e) {
-    errors = [e];
+  let kind = inputKind(qs);
+
+  switch (kind) {
+  case 'query':
+  case 'mutation':
+    let errors = await onQuery(qs, schema);
+    reportErrors(kind, errors);
+
+    if (errors.length > 0) {
+      throw qs;
+    }
+
+    return {kind: 'query', input: qs};
+  case 'fragment':
+  case 'let':
+  case 'import':
+    reportErrors(kind, [{message: `cannot define ${kind}`}]); // TODO
+    return {kind: kind};
   }
+  throw qs;
+};
 
+function reportErrors(kind, errors) {
   if (errors.length > 0) {
-    term.nextLine(1);
-    term.bold('Invalid query\n');
+    term.bold(`Invalid ${kind}\n`);
     errors.forEach(e => {
       term.red(e.message + '\n');
     });
-    throw qs;
   }
+}
 
-  return qs;
-};
+async function onQuery(queryString, schema) {
+  let errors;
+  try {
+    errors = await validateQuery(parse(queryString), schema);
+  } catch (e) {
+    errors = [e];
+  }
+  return errors;
+}
 
 const getQueryFromTerminalUI = (schema, history, value)  => {
   return getValidQuery(schema, history.slice(), value).catch(invalidStr => {
-    if (exit) return Promise.resolve(undefined);
+    if (fragments.length > 0) {
+      console.log(`Fragments: ${fragments.map(i => i.name).join(', ')}`);
+    }
 
     return getQueryFromTerminalUI(schema, history, invalidStr);
   });
@@ -214,21 +274,27 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
 
   console.log('Enter the query, use TAB to auto-complete, Enter to execute, Ctrl+C to cancel');
   let cancellation = new Promise((resolve, _) => {
-    cancel = () => resolve(undefined);
+    cancel = () => resolve({kind: 'done'});
   });
 
-  let queryString;
+  let loop = true;
 
-  do {
+  while (loop) {
     let promise = getQueryFromTerminalUI(schema, history);
-    queryString = await Promise.race([promise, cancellation]);
-    if (queryString) {
-      history.push(queryString);
+    res = await Promise.race([promise, cancellation]);
+    switch (res.kind) {
+    case 'done':
+      loop = false;
+      break;
+    case 'query':
+    case 'mutation':
+      history.push(res.input);
       cli.action.start('Waiting');
-      await query({query: queryString, endpoint, headers}, successCb, errorCb);
+      await query({query: res.input, endpoint, headers}, successCb, errorCb);
       cli.action.stop('done');
+      break;
     }
-  } while (queryString);
+  }
 
   writeHistory(history);
 };
