@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const tk = require('terminal-kit');
 const xdg = require('@folder/xdg');
 const path = require('path');
@@ -10,12 +11,13 @@ const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-se
 const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
 const query = require('./query.js');
+const paths = require('./ui/paths.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
 const KINDS = [
   'query', 'mutation', 'fragment', 'import',
-  'let', 'help', 'type', 'quit'
+  'let', 'help', paths.KIND, 'quit'
 ];
 
 var term = tk.terminal;
@@ -75,12 +77,13 @@ const suggest = schema => inputString => {
     return suggestQueryField(schema, inputString);
   case 'let':
     return suggestVariables(schema, inputString);
-  case 'type':
+  case paths.KIND:
+    return paths.suggestPath(schema, inputString);
   case 'help':
   case 'quit':
     return inputString;
   }
-  return KINDS;
+  return KINDS.filter(k => _.isEmpty(inputString) || k.startsWith(inputString));
 }
 
 function suggestVariables(schema, inputString) {
@@ -179,13 +182,14 @@ const autocompletion = schema => {
   return {autoComplete: suggest(schema), autoCompleteMenu: true};
 };
 
+// TODO: different inputs for each kind
 const input = (schema, history, value) => {
   if (ib) {
     ib.abort();
   }
   let opts = {default: value, history, ...autocompletion(schema)};
   ib = term.inputField(opts);
-  return ib;
+  return ib.promise;
 };
 
 term.on('key', async function (key) {
@@ -212,7 +216,7 @@ function printState() {
 const getValidQuery = async (schema, history, value) => {
   printState();
   term('gql> ');
-  const qs = await input(schema, history, value).promise;
+  const qs = await input(schema, history, value);
   term('\n');
 
   let kind = inputKind(qs);
@@ -231,8 +235,11 @@ const getValidQuery = async (schema, history, value) => {
     expr = letExpression(qs);
     reportErrors(kind, qs, expr.errors);
     return expr;
+  case paths.KIND:
+    expr = paths.typeExpression(schema, qs);
+    reportErrors(kind, qs, expr.errors);
+    return expr;
   case 'fragment':
-  case 'type':
   case 'import':
     term.red(`Not implemented: ${kind}\n`); // TODO
     return {kind};
@@ -435,6 +442,9 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     case 'let':
       history.push(exprToString(res));
       variables.set(res.name, res);
+      break;
+    case paths.KIND:
+      res.render(term);
       break;
     }
   }
