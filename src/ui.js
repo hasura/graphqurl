@@ -83,7 +83,14 @@ const suggest = schema => inputString => {
   case 'quit':
     return inputString;
   }
-  return KINDS.filter(k => _.isEmpty(inputString) || k.startsWith(inputString));
+
+  let matches = KINDS.filter(k => _.isEmpty(inputString) || k.includes(inputString.toLowerCase()));
+
+  if (_.isEmpty(matches)) {
+    return inputString;
+  } else {
+    return matches;
+  }
 }
 
 function suggestVariables(schema, inputString) {
@@ -409,7 +416,11 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   });
 
-  let schema = await getSchema(client, errorCb);
+  let schema = await getSchema(client, errorCb).catch(e => {
+    term.red(`Could not fetch schema from ${endpoint}\n`);
+    e.errors.forEach(e => term(e.message + '\n'));
+    throw e;
+  });
 
   /* eslint-disable-next-line no-unmodified-loop-condition */
   let history = await loadHistory();
