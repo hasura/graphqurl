@@ -65,7 +65,15 @@ function inputTypes(schema) {
   return schema.inputTypes;
 }
 
-const suggest = schema => inputString => {
+const neverEmpty = f => x => {
+  let xs = f(x);
+  if (_.isEmpty(xs)) {
+    return x;
+  }
+  return xs;
+}
+
+const suggest = schema => neverEmpty(inputString => {
   switch (inputKind(inputString)) {
   case 'import':
     return suggestImports(inputString);
@@ -84,14 +92,8 @@ const suggest = schema => inputString => {
     return inputString;
   }
 
-  let matches = KINDS.filter(k => _.isEmpty(inputString) || k.includes(inputString.toLowerCase()));
-
-  if (_.isEmpty(matches)) {
-    return inputString;
-  } else {
-    return matches;
-  }
-}
+  return KINDS.filter(k => _.isEmpty(inputString) || k.includes(inputString.toLowerCase()));
+});
 
 function suggestVariables(schema, inputString) {
   let completions;
@@ -289,6 +291,8 @@ function exprToString(expr) {
       return expr.input;
     case 'let':
       return `let ${expr.name} : ${expr.type} = ${expr.value}`;
+    case paths.KIND:
+      return expr.asInputString();
   }
 }
 
@@ -433,7 +437,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   let loop = true;
 
   while (loop) {
-    let promise = getQueryFromTerminalUI(schema, history);
+    let promise = getQueryFromTerminalUI(schema, _.uniq(history));
     res = await Promise.race([promise, cancellation]);
     switch (res.kind) {
     case 'quit':
@@ -455,12 +459,13 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
       variables.set(res.name, res);
       break;
     case paths.KIND:
+      history.push(exprToString(res));
       res.render(term);
       break;
     }
   }
 
-  writeHistory(history);
+  writeHistory(_.uniq(history));
 };
 
 module.exports = executeQueryFromTerminalUI

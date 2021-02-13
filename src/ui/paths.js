@@ -7,12 +7,17 @@ function toPathString(inputString) {
 }
 
 class TypeExpression {
-  constructor(type, inner, description, errors) {
+  constructor(type, inner, description, errors, path) {
     this.kind = KIND;
     this.type = type;
     this.inner = inner;
     this.description = description;
     this.errors = errors;
+    this.path = path;
+  }
+
+  asInputString() {
+    return KIND + ' ' + this.path;
   }
 
   render(term) {
@@ -47,7 +52,7 @@ function typeExpression(schema, inputString) {
   let description = type && type.description;
   if (!description && inner) description = inner.description;
   let errors = type ? [] : ['Invalid path'];
-  return new TypeExpression(type, inner, description, errors);
+  return new TypeExpression(type, inner, description, errors, pathString);
 }
 
 function typeAt(schema, pathString) {
