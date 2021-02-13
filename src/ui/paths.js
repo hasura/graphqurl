@@ -7,9 +7,10 @@ function toPathString(inputString) {
 }
 
 class TypeExpression {
-  constructor(type, inner, description, errors, path) {
+  constructor(type, field, inner, description, errors, path) {
     this.kind = KIND;
     this.type = type;
+    this.field = field;
     this.inner = inner;
     this.description = description;
     this.errors = errors;
@@ -33,26 +34,37 @@ class TypeExpression {
       });
     }
     if (this.inner instanceof GraphQLInputObjectType) {
-      term('arguments:\n');
-      let table = [['name', 'type', 'description']];
       let args = this.inner.getFields();
-      for (let name in args) {
-        let t = args[name];
-        table.push([t.name, t.type, t.description]);
-      }
-      term.table(table, {firstRowTextAttr: {bold: true}, width: 72, fit: true});
+      argumentTable(term, Object.values(args).map(arg => {
+        return [arg.name, arg.type, arg.description];
+      }));
+    }
+    if (this.field && !_.isEmpty(this.field.args)) {
+      argumentTable(term, this.field.args.map(arg => {
+        return [arg.name, arg.type, arg.description];
+      }));
     }
   }
 }
 
+function argumentTable(term, rows) {
+  term('arguments:\n');
+  let table = [['name', 'type', 'description']];
+  term.table(table.concat(rows), {
+    firstRowTextAttr: {bold: true},
+    width: 72,
+    fit: true
+  });
+}
+
 function typeExpression(schema, inputString) {
   let pathString = toPathString(inputString);
-  let type = typeAt(schema, pathString);
+  let [type, field] = typeAt(schema, pathString);
   let inner = unwrap(type);
   let description = type && type.description;
   if (!description && inner) description = inner.description;
   let errors = type ? [] : ['Invalid path'];
-  return new TypeExpression(type, inner, description, errors, pathString);
+  return new TypeExpression(type, field, inner, description, errors, pathString);
 }
 
 function typeAt(schema, pathString) {
@@ -63,11 +75,11 @@ function typeAt(schema, pathString) {
     return undefined;
   }
   let root = types[parts[0]];
-  return parts.slice(1).reduce((t, name) => {
-    if (!t) return undefined;
+  return parts.slice(1).reduce(([t, f], name) => {
+    if (!t) return [undefined, f];
     let field = unwrap(t).getFields()[name];
-    return field && field.type;
-  }, root);
+    return [field && field.type, field];
+  }, [root, null]);
 }
 
 function unwrap(type) {
@@ -93,7 +105,7 @@ function suggestPath(schema, inputString) {
   let currentPartEmpty = pathString == '' || pathString.endsWith('.');
   let pathToType = currentPartEmpty ? parts : _.initial(parts);
 
-  let type = typeAt(schema, pathToType.join('.'));
+  let [type, _field] = typeAt(schema, pathToType.join('.'));
   if (!type) {
     return inputString;
   }
