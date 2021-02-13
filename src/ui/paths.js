@@ -1,6 +1,5 @@
 const _ = require('lodash');
-const {GraphQLEnumType} = require('graphql');
-
+const {GraphQLEnumType, GraphQLInputObjectType} = require('graphql');
 const KIND = ':type';
 
 function toPathString(inputString) {
@@ -27,6 +26,16 @@ class TypeExpression {
         if (t.description) { term(` (${t.description})`); }
         term('\n');
       });
+    }
+    if (this.inner instanceof GraphQLInputObjectType) {
+      term('arguments:\n');
+      let table = [['name', 'type', 'description']];
+      let args = this.inner.getFields();
+      for (let name in args) {
+        let t = args[name];
+        table.push([t.name, t.type, t.description]);
+      }
+      term.table(table, {firstRowTextAttr: {bold: true}, width: 72, fit: true});
     }
   }
 }
