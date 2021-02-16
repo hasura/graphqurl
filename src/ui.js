@@ -266,16 +266,21 @@ function letExpression(string) {
 
   const expr = {kind: 'let', ...match.groups};
   expr.value = expr.value.replace(/(^\s+|\s+$)/g, '');
+  expr.parsed = expr.value;
 
   if (!expr.type) {
     if (/^\d+\.\d+$/.test(expr.value)) {
       expr.type = 'Float';
+      expr.parsed = parseFloat(expr.value);
     } else if (/^\d+$/.test(expr.value)) {
       expr.type = 'Int';
+      expr.parsed = parseInt(expr.value);
     } else if (/^".*"$/.test(expr.value)) {
       expr.type = 'String';
+      expr.parsed = expr.value.replace(/(^"|"$)/g, '');
     } else if (/^(true|false)$/.test(expr.value)) {
       expr.type = 'Boolean';
+      expr.parsed = expr.value === 'true';
     } else {
       expr.errors = [{message: `Cannot infer type of ${expr.value}`}];
     }
@@ -415,6 +420,23 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   } = queryOptions;
 
+  if (queryOptions.variables) {
+    for (let k in queryOptions.variables) {
+      let v = queryOptions.variables
+      if (_.isString(v)) {
+        variables.set(k, {kind: 'let', type: 'String', value: `"${v}"`, parsed: v});
+      } else if (Number.isInteger(v)) {
+        variables.set(k, {kind: 'let', type: 'Int', value: `${v}`, parsed: v});
+      } else if (typeof v === 'number') {
+        variables.set(k, {kind: 'let', type: 'Float', value: `${v}`, parsed: v});
+      } else if (v === true || v === false) {
+        variables.set(k, {kind: 'let', type: 'Boolean', value: `${v}`, parsed: v});
+      } else {
+        variables.set(k, {kind: 'let', type: 'Unknown', value: JSON.stringify(v), parsed: v});
+      }
+    }
+  }
+
   let client = makeClient({
     endpoint,
     headers,
@@ -451,7 +473,8 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     case 'mutation':
       history.push(exprToString(res));
       cli.action.start('Waiting');
-      await query({query: res.input, endpoint, headers}, successCb, errorCb);
+      let vars = _.fromPairs(Array.from(variables).map(([k, defn]) => [k, defn.parsed]))
+      await query({query: res.input, variables: vars, endpoint, headers}, successCb, errorCb);
       cli.action.stop('done');
       break;
     case 'let':
