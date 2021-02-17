@@ -1,12 +1,17 @@
 const {Command, flags} = require('@oclif/command');
 const {CLIError} = require('@oclif/errors');
 const url = require('url');
+const fs = require('fs');
+const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
 const {getIntrospectionQuery} = require('graphql');
 const {cli} = require('cli-ux');
 const query = require('./query.js');
+
+// Convert fs.readFile into Promise version of same
+const readFile = util.promisify(fs.readFile);
 
 class GraphqurlCommand extends Command {
   async run() {
@@ -90,6 +95,10 @@ class GraphqurlCommand extends Command {
   }
 
   async getQueryString(args, flags) {
+    if (flags.queryFile) {
+      const fileContent = await readFile(flags.queryFile, "utf8");
+      return fileContent;
+    }
     if (flags.query) {
       return flags.query;
     }
@@ -99,6 +108,7 @@ class GraphqurlCommand extends Command {
   async getQueryVariables(args, flags) {
     let possibleFlags = [
       flags.variable,
+      flags.variablesFile,
       flags.variablesJSON,
     ];
     let flagsCount = 0;
@@ -116,6 +126,13 @@ class GraphqurlCommand extends Command {
         variablesObject = JSON.parse(flags.variablesJSON);
       } catch (err) {
         this.error(`error parsing --variablesJSON: ${err}`);
+      }
+    }
+    if (flags.variablesFile) {
+      try {
+        variablesObject = JSON.parse(await readFile(flags.variablesFile));
+      } catch (err) {
+        this.error(`error reading and parsing --variablesFile: ${err}`);
       }
     }
     if (flags.variable) {
@@ -210,6 +227,16 @@ GraphqurlCommand.flags = {
     char: 'j',
     description: 'query variables as JSON string',
     multiple: false,
+  }),
+
+  // file to read query from
+  queryFile: flags.string({
+    description: 'file to read the query from',
+  }),
+
+  // file to read variables from
+  variablesFile: flags.string({
+    description: 'JSON file to read the query variables from',
   }),
 
   // run graphiql
