@@ -12,12 +12,15 @@ const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
 const query = require('./query.js');
 const paths = require('./ui/paths.js');
+const {indexSchema} = require('./ui/schema.js');
 
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
+const introspectionFile = path.join(__dirname, 'queries', 'introspection.graphql');
+
 const KINDS = [
   'query', 'mutation', 'fragment', 'import',
-  'let', 'help', paths.KIND, 'quit'
+  'let', 'help', paths.KIND, 'quit', 'reload-schema'
 ];
 
 var term = tk.terminal;
@@ -73,7 +76,7 @@ const neverEmpty = f => x => {
   return xs;
 }
 
-const suggest = schema => neverEmpty(inputString => {
+const suggest = ({schema, indexedSchema}) => neverEmpty(inputString => {
   switch (inputKind(inputString)) {
   case 'import':
     return suggestImports(inputString);
@@ -86,9 +89,10 @@ const suggest = schema => neverEmpty(inputString => {
   case 'let':
     return suggestVariables(schema, inputString);
   case paths.KIND:
-    return paths.suggestPath(schema, inputString);
+    return paths.suggestPath(schema, indexedSchema, inputString);
   case 'help':
   case 'quit':
+  case 'reload-schema':
     return inputString;
   }
 
@@ -187,16 +191,16 @@ function nextBracket(queryString) {
   return undefined;
 };
 
-const autocompletion = schema => {
-  return {autoComplete: suggest(schema), autoCompleteMenu: true};
+const autocompletion = schemas => {
+  return {autoComplete: suggest(schemas), autoCompleteMenu: true};
 };
 
 // TODO: different inputs for each kind
-const input = (schema, history, value) => {
+const input = (schemas, history, value) => {
   if (ib) {
     ib.abort();
   }
-  let opts = {default: value, history, ...autocompletion(schema)};
+  let opts = {default: value, history, ...autocompletion(schemas)};
   ib = term.inputField(opts);
   return ib.promise;
 };
@@ -222,10 +226,10 @@ function printState() {
   }
 }
 
-const getValidQuery = async (schema, history, value) => {
+const getValidQuery = async (schemas, history, value) => {
   printState();
   term('gql> ');
-  const qs = await input(schema, history, value);
+  const qs = await input(schemas, history, value);
   term('\n');
 
   let kind = inputKind(qs);
@@ -234,10 +238,11 @@ const getValidQuery = async (schema, history, value) => {
   switch (kind) {
   case 'help':
   case 'quit':
+  case 'reload-schema':
     return {kind};
   case 'query':
   case 'mutation':
-    expr = await queryExpression(qs, schema);
+    expr = await queryExpression(qs, schemas.schema);
     reportErrors(kind, qs, expr.errors);
     return expr;
   case 'let':
@@ -245,7 +250,7 @@ const getValidQuery = async (schema, history, value) => {
     reportErrors(kind, qs, expr.errors);
     return expr;
   case paths.KIND:
-    expr = paths.typeExpression(schema, qs);
+    expr = paths.typeExpression(schemas, qs);
     reportErrors(kind, qs, expr.errors);
     return expr;
   case 'fragment':
@@ -324,9 +329,9 @@ async function queryExpression(queryString, schema) {
   return {kind: 'query', input: queryString, errors};
 }
 
-const getQueryFromTerminalUI = (schema, history, value)  => {
-  return getValidQuery(schema, history.slice(), value).catch(invalidStr => {
-    return getQueryFromTerminalUI(schema, history, invalidStr);
+const getQueryFromTerminalUI = (schemas, history, value)  => {
+  return getValidQuery(schemas, history.slice(), value).catch(invalidStr => {
+    return getQueryFromTerminalUI(schemas, history, invalidStr);
   });
 };
 
@@ -359,19 +364,21 @@ const loadHistory = async () => {
 
 const TWO_HOURS_MILLIS = 60 * 60 * 1000;
 
-const getSchema = async (client, errorCb) => {
+const getSchema = async (client, errorCb, useCache = true) => {
   const hash = crypto.createHash('sha256');
   hash.update(JSON.stringify(client.options));
 
   cli.action.start('Introspecting schema');
-  const introspectionOpts = {query: getIntrospectionQuery()};
+  const queryString = await promisify(fs.readFile)(introspectionFile, 'utf8');
+  // const introspectionOpts = {query: getIntrospectionQuery()};
+  const introspectionOpts = {query: queryString};
   hash.update(JSON.stringify(introspectionOpts));
   let hex = hash.digest('hex');
   let cacheName = path.join(directories.cache, 'schema_' + hex + '.json');
   let stats = await promisify(fs.stat)(cacheName).catch(() => null);
   let r;
 
-  if (stats && Date.now() - stats.mtime.getTime() <= TWO_HOURS_MILLIS) {
+  if (useCache && stats && Date.now() - stats.mtime.getTime() <= TWO_HOURS_MILLIS) {
     let cached = await promisify(fs.readFile)(cacheName, 'utf8').catch(() => null);
     if (cached) {
       try {
@@ -397,7 +404,7 @@ const getSchema = async (client, errorCb) => {
 
   cli.action.stop('done');
   // term.fullscreen(true);
-  return buildClientSchema(r);
+  return r;
 };
 
 function printHelp() {
@@ -442,11 +449,12 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     headers,
   });
 
-  let schema = await getSchema(client, errorCb).catch(e => {
+  let rawSchema = await getSchema(client, errorCb).catch(e => {
     term.red(`Could not fetch schema from ${endpoint}\n`);
     e.errors.forEach(e => term(e.message + '\n'));
     throw e;
   });
+  let schema = buildClientSchema(rawSchema);
 
   /* eslint-disable-next-line no-unmodified-loop-condition */
   let history = await loadHistory();
@@ -459,12 +467,23 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   let loop = true;
 
   while (loop) {
-    let promise = getQueryFromTerminalUI(schema, _.uniq(history));
+    let schemas = {schema, indexedSchema: indexSchema(rawSchema)};
+    let promise = getQueryFromTerminalUI(schemas, _.uniq(history));
     res = await Promise.race([promise, cancellation]);
     switch (res.kind) {
     case 'quit':
       loop = false;
       terminate();
+      break;
+    case 'reload-schema':
+      let newSchema = await getSchema(client, errorCb, false).catch(e => {
+        term.red(`Could not fetch schema from ${endpoint}\n`);
+        e.errors.forEach(e => term(e.message + '\n'));
+      });
+      if (newSchema) {
+        rawSchema = newSchema;
+        schema = buildClientSchema(newSchema);
+      }
       break;
     case 'help':
       printHelp();

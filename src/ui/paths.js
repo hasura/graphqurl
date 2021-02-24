@@ -22,64 +22,91 @@ class TypeExpression {
   }
 
   render(term) {
-    term.bold(this.type + '\n');
+    term.bold(typeName(this.type) + '\n');
     if (this.description) term.wrap(`${this.description}\n`);
-    if (this.inner instanceof GraphQLEnumType) {
+    if (this.inner.kind == 'ENUM') {
       term('values:\n');
-      this.inner.getValues().forEach(t => {
+      this.inner.enumValues.forEach(t => {
         term(' - ');
         term.bold(t.name);
         if (t.description) { term(` (${t.description})`); }
         term('\n');
       });
     }
-    if (this.inner instanceof GraphQLInputObjectType) {
-      let args = this.inner.getFields();
-      argumentTable(term, Object.values(args).map(arg => {
-        return [arg.name, arg.type, arg.description];
+    if (this.inner.kind == 'INPUT_OBJECT') {
+      argumentTable(term, this.inner.inputFields.map(arg => {
+        return [arg.name, typeName(arg.type), arg.description, arg.deprecationReason || 'No'];
       }));
     }
     if (this.field && !_.isEmpty(this.field.args)) {
       argumentTable(term, this.field.args.map(arg => {
-        return [arg.name, arg.type, arg.description];
+        return [arg.name, typeName(arg.type), arg.description, arg.deprecationReason || 'No'];
       }));
     }
+  }
+}
+
+function typeName(type) {
+  switch (type.kind) {
+    case 'NON_NULL':
+      return `${typeName(type.ofType)}!`;
+    case 'LIST':
+      return `[${typeName(type.ofType)}]`;
+    default:
+      return type.name;
   }
 }
 
 function argumentTable(term, rows) {
   term('arguments:\n');
-  let table = [['name', 'type', 'description']];
+  let table = [['name', 'type', 'description', 'deprecated?']];
   term.table(table.concat(rows), {
     firstRowTextAttr: {bold: true},
-    width: 72,
+    width: 80,
     fit: true
   });
 }
 
-function typeExpression(schema, inputString) {
+function typeExpression(schemas, inputString) {
   let pathString = toPathString(inputString);
-  let [type, field] = typeAt(schema, pathString);
-  let inner = unwrap(type);
-  let description = type && type.description;
+  let [type, field] = typeAt(schemas.indexedSchema, pathString);
+  let inner = innerType(type, schemas.indexedSchema);
+  let description = field && field.description;
   if (!description && inner) description = inner.description;
-  let errors = type ? [] : ['Invalid path'];
+  let errors = inner ? [] : [{message: 'Invalid path'}];
   return new TypeExpression(type, field, inner, description, errors, pathString);
 }
 
-function typeAt(schema, pathString) {
-  let types = schema.getTypeMap();
+function innerType(type, indexedSchema) {
+  let unwrapped = unwrap(type);
+  if (!unwrapped) return undefined;
+
+  return indexedSchema.index[unwrapped.name];
+}
+
+function typeAt(indexedSchema, pathString) {
   let parts = pathString.split('.');
 
   if (parts.length == 0) {
     return undefined;
   }
-  let root = types[parts[0]];
-  return parts.slice(1).reduce(([t, f], name) => {
-    if (!t) return [undefined, f];
-    let field = unwrap(t).getFields()[name];
-    return [field && field.type, field];
-  }, [root, null]);
+  let head, tail;
+  if (/^[A-Z]/.test(parts[0])) {
+    head = parts[0];
+    tail = parts.slice(1);
+  } else {
+    head = 'Query';
+    tail = parts;
+  }
+  return tail.reduce(([t, f], name) => {
+    let unwrapped = unwrap(t);
+    if (!unwrapped) return [undefined, undefined];
+    let full = indexedSchema.index[unwrapped.name];
+    if (!full) return [undefined, undefined];
+    let field = indexedSchema.index[`${full.name}.${name}`];
+    if (!field) return [undefined, undefined];
+    return [field.type, field];
+  }, [indexedSchema.index[head], null]);
 }
 
 function unwrap(type) {
@@ -90,7 +117,7 @@ function unwrap(type) {
   return inner;
 }
 
-function suggestPath(schema, inputString) {
+function suggestPath(schema, indexedSchema, inputString) {
   let pathString = toPathString(inputString);
   let parts = pathString.split('.');
   if (parts.length < 2) {
@@ -105,13 +132,16 @@ function suggestPath(schema, inputString) {
   let currentPartEmpty = pathString == '' || pathString.endsWith('.');
   let pathToType = currentPartEmpty ? parts : _.initial(parts);
 
-  let [type, _field] = typeAt(schema, pathToType.join('.'));
+  let [type, _field] = typeAt(indexedSchema, pathToType.join('.'));
   if (!type) {
     return inputString;
   }
-  let fields = unwrap(type).getFields();
+  let unwrapped = unwrap(type);
+  let fields = unwrapped.fields || [];
+  let inputFields = unwrapped.inputFields || [];
+  let args = unwrapped.args || [];
 
-  let completions = Object.keys(fields);
+  let completions = fields.concat(inputFields).concat(args).map(f => f.name);
   if (!currentPartEmpty) {
     let currentPart = _.last(parts);
     if (fields[currentPart]) {
@@ -128,4 +158,4 @@ function suggestPath(schema, inputString) {
 }
 
 
-module.exports = {KIND, suggestPath, typeExpression};
+module.exports = {KIND, typeAt, typeName, suggestPath, typeExpression};
