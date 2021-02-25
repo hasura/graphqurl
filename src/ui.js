@@ -81,17 +81,16 @@ const neverEmpty = f => x => {
 }
 
 const suggest = ({schema, indexedSchema}) => neverEmpty(currentLine => {
+  let prefix = [...lines, ''].join('\n');
   let inputString = [...lines, currentLine].join('\n');
 
   switch (inputKind(inputString)) {
   case 'import':
     return suggestImports(inputString);
   case 'query':
-    return suggestQueryField(schema, inputString);
   case 'mutation':
-    return suggestQueryField(schema, inputString);
   case 'fragment':
-    return suggestQueryField(schema, inputString);
+    return suggestQueryField(schema, inputString, prefix.length);
   case 'let':
     return suggestVariables(schema, inputString);
   case paths.KIND:
@@ -157,9 +156,9 @@ function suggestImports(inputString) {
   return [];
 }
 
-function suggestQueryField(schema, inputString) {
+function suggestQueryField(schema, inputString, offset) {
   let position = ib.getCursorPosition();
-  let qs = inputString.slice(0, position + 1);
+  let qs = inputString.replace(/\n/g, ' ').slice(0, position + offset + 1);
   let p = new Position(position, 0);
   let closingBrackets = [nextBracket(qs)].filter(x => x);
 
@@ -288,6 +287,7 @@ const getValidQuery = async (schemas, history, value) => {
   case 'mutation':
     expr = await queryExpression(qs, schemas.schema);
     if (expr.indentLevel > 0) {
+      reprintInput = false;
       lines.push(qs);
       throw _.repeat('  ', expr.indentLevel);
     } else {
@@ -533,10 +533,15 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
       terminate();
       break;
     case 'previous-line':
-      let previous = lines.pop();
-      currentLine = previous;
-      term.previousLine(lines.length + 1);
-      reprintInput = true;
+      if (lines.length > 0) {
+        let previous = lines.pop();
+        currentLine = previous;
+        term.eraseLine();
+        term.previousLine(lines.length + 1);
+        reprintInput = true;
+      } else {
+        term.column(0);
+      }
       break;
     case 'reload-schema':
       let newSchema = await getSchema(client, errorCb, false).catch(e => {
