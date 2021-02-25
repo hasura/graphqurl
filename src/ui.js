@@ -27,7 +27,10 @@ var term = tk.terminal;
 
 let ib;
 let cancel;
+let goBack;
 let fragments = [];
+let lines = [];
+let reprintInput = false;
 let variables = new Map();
 
 const directories = xdg({subdir: 'graphqurl'});
@@ -35,6 +38,7 @@ const directories = xdg({subdir: 'graphqurl'});
 const terminate = () => {
   if (ib) {
     ib.abort();
+    ib = null;
   }
   if (cancel) {
     cancel();
@@ -76,7 +80,9 @@ const neverEmpty = f => x => {
   return xs;
 }
 
-const suggest = ({schema, indexedSchema}) => neverEmpty(inputString => {
+const suggest = ({schema, indexedSchema}) => neverEmpty(currentLine => {
+  let inputString = [...lines, currentLine].join('\n');
+
   switch (inputKind(inputString)) {
   case 'import':
     return suggestImports(inputString);
@@ -158,26 +164,19 @@ function suggestQueryField(schema, inputString) {
   let closingBrackets = [nextBracket(qs)].filter(x => x);
 
   let items = closingBrackets.concat(getAutocompleteSuggestions(schema, qs, p).map(item => item.label));
+  let lastLine = /\n/.test(inputString) ? inputString.split(/\n/).pop() : inputString;
 
   if (items.length === 0) {
-    return inputString;
+    return lastLine;
   }
 
-  items.prefix = inputString.replace(/\w+$/, '');
+  items.prefix = lastLine.replace(/\w+$/, '');
 
   return items;
 };
 
 function nextBracket(queryString) {
-  let bStack = [];
-  for (let c of queryString) {
-    if (c === '{' || c === '(' || c === '[') {
-      bStack.push(c);
-    }
-    if (c === '}' || c === ')' || c === ']') {
-      bStack.pop();
-    }
-  }
+  let bStack = bracketStack(queryString);
   let openBracket = bStack.pop();
 
   switch (openBracket) {
@@ -190,6 +189,23 @@ function nextBracket(queryString) {
   }
   return undefined;
 };
+
+function openBracketCount(queryString) {
+  return bracketStack(queryString).length;
+}
+
+function bracketStack(queryString) {
+  let bStack = [];
+  for (let c of queryString) {
+    if (c === '{' || c === '(' || c === '[') {
+      bStack.push(c);
+    }
+    if (c === '}' || c === ')' || c === ']') {
+      bStack.pop();
+    }
+  }
+  return bStack;
+}
 
 const autocompletion = schemas => {
   return {autoComplete: suggest(schemas), autoCompleteMenu: true};
@@ -206,9 +222,20 @@ const input = (schemas, history, value) => {
 };
 
 term.on('key', async function (key) {
-  if (key === 'CTRL_D' || key === 'CTRL_C') {
+  switch (key) {
+  case 'CTRL_D':
+  case 'CTRL_C':
     console.log('Goodbye!');
     terminate();
+  case 'BACKSPACE':
+    if (ib) {
+      let currentLine = ib.getInput();
+      if (_.isEmpty(currentLine)) {
+        if (goBack) goBack();
+        ib.abort();
+        ib = null;
+      }
+    }
   }
 });
 
@@ -226,13 +253,30 @@ function printState() {
   }
 }
 
+function showPrompt() {
+  if (_.isEmpty(lines)) {
+    printState();
+    term('gql> ');
+  } else {
+    if (reprintInput) {
+      printState();
+      lines.forEach((line, i) => {
+        let prmpt = i == 0 ? 'gql' : '...';
+        term(`${prmpt}> ${line}\n`);
+      });
+      reprintInput = false;
+    }
+    term('...> ');
+  }
+}
+
 const getValidQuery = async (schemas, history, value) => {
-  printState();
-  term('gql> ');
+  showPrompt();
+
   const qs = await input(schemas, history, value);
   term('\n');
 
-  let kind = inputKind(qs);
+  let kind = inputKind([...lines, qs].join('\n'));
   let expr;
 
   switch (kind) {
@@ -243,7 +287,12 @@ const getValidQuery = async (schemas, history, value) => {
   case 'query':
   case 'mutation':
     expr = await queryExpression(qs, schemas.schema);
-    reportErrors(kind, qs, expr.errors);
+    if (expr.indentLevel > 0) {
+      lines.push(qs);
+      throw _.repeat('  ', expr.indentLevel);
+    } else {
+      reportErrors(kind, qs, expr.errors);
+    }
     return expr;
   case 'let':
     expr = letExpression(qs);
@@ -315,18 +364,21 @@ function reportErrors(kind, string, errors) {
     errors.forEach(e => {
       term.red(e.message + '\n');
     });
+    reprintInput = true;
     throw string;
   }
 }
 
-async function queryExpression(queryString, schema) {
+async function queryExpression(currentLine, schema) {
   let errors;
+  let queryString = [...lines, currentLine].join('\n');
   try {
     errors = await validateQuery(parse(queryString), schema);
   } catch (e) {
     errors = [e];
   }
-  return {kind: 'query', input: queryString, errors};
+  let indentLevel = openBracketCount(queryString);
+  return {kind: 'query', input: queryString, indentLevel, errors};
 }
 
 const getQueryFromTerminalUI = (schemas, history, value)  => {
@@ -463,17 +515,28 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   let cancellation = new Promise((resolve, _) => {
     cancel = () => resolve({kind: 'quit'});
   });
-
   let loop = true;
+  let currentLine;
 
   while (loop) {
+    let prevLine = new Promise((resolve, _) => {
+      goBack = () => resolve({kind: 'previous-line'});
+    });
+
     let schemas = {schema, indexedSchema: indexSchema(rawSchema)};
-    let promise = getQueryFromTerminalUI(schemas, _.uniq(history));
-    res = await Promise.race([promise, cancellation]);
+    let promise = getQueryFromTerminalUI(schemas, _.uniq(history), currentLine);
+    res = await Promise.race([promise, cancellation, prevLine]);
+    currentLine = undefined;
     switch (res.kind) {
     case 'quit':
       loop = false;
       terminate();
+      break;
+    case 'previous-line':
+      let previous = lines.pop();
+      currentLine = previous;
+      term.previousLine(lines.length + 1);
+      reprintInput = true;
       break;
     case 'reload-schema':
       let newSchema = await getSchema(client, errorCb, false).catch(e => {
@@ -491,6 +554,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     case 'query':
     case 'mutation':
       history.push(exprToString(res));
+      lines = [];
       cli.action.start('Waiting');
       let vars = _.fromPairs(Array.from(variables).map(([k, defn]) => [k, defn.parsed]))
       await query({query: res.input, variables: vars, endpoint, headers}, successCb, errorCb);
