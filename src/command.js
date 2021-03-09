@@ -69,7 +69,7 @@ class GraphqurlCommand extends Command {
     let headerObject = {};
     if (headersArray) {
       for (let h of headersArray) {
-        const parts = h.split(':');
+        const parts = h.split(/[^\\]:/);
         if (parts.length !== 2) {
           this.error(`cannot parse header '${h}' (multiple ':')`);
         }
