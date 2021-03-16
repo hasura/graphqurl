@@ -148,18 +148,20 @@ const getQueryFromTerminalUI = ()  => {
   });
 };
 
-const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
+const executeQueryFromTerminalUI = async (ctx, queryOptions, successCb, errorCb)  => {
   const {
     endpoint,
     headers,
   } = queryOptions;
-  cli.action.start('Introspecting schema');
+  ctx.start('Introspecting schema');
   let client = makeClient({
     endpoint,
     headers,
   });
   const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
-  cli.action.stop('done');
+
+  ctx.stop('done');
+
   const r = schemaResponse.data;
   // term.fullscreen(true);
   schema = buildClientSchema(r);
@@ -169,9 +171,9 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
-    cli.action.start('Waiting');
+    ctx.start('Waiting');
     await query({query: queryString, endpoint, headers}, successCb, errorCb);
-    cli.action.stop('done');
+    ctx.stop('done');
   }
 };
 

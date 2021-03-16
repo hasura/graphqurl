@@ -45,7 +45,7 @@ class GraphqurlCommand extends Command {
     };
 
     if (queryString === null) {
-      queryString = await executeQueryFromTerminalUI({
+      queryString = await executeQueryFromTerminalUI(this, {
         endpoint: endpoint,
         headers,
         variables,
@@ -61,8 +61,21 @@ class GraphqurlCommand extends Command {
       name: flags.name,
     };
 
-    cli.action.start('Executing query');
+    this.start('Executing query');
+
     await query(queryOptions, successCallback, errorCallback);
+  }
+
+  start(message) {
+    if (!this.flags.silent) {
+      cli.action.start(message);
+    }
+  }
+
+  stop(message) {
+    if (!this.flags.silent) {
+      cli.action.stop(message)
+    }
   }
 
   parseHeaders(headersArray) {
@@ -248,6 +261,12 @@ GraphqurlCommand.flags = {
     description: 'output format for graphql schema after introspection',
     default: 'graphql',
     options: ['json', 'graphql'],
+  }),
+
+  silent: flags.boolean({
+    char: 's',
+    default: false,
+    description: 'silent mode',
   }),
 };
 

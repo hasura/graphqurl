@@ -7,7 +7,7 @@ const querySuccessCb = (ctx, response, queryType) => {
   if (queryType === 'subscription') {
     cli.action.stop('event received');
     ctx.log(out);
-    cli.action.start('Waiting');
+    ctx.action.start('Waiting');
   } else {
     if (ctx.flags.introspect) {
       if (ctx.flags.format === 'graphql') {
@@ -24,6 +24,7 @@ const querySuccessCb = (ctx, response, queryType) => {
 
 const queryErrorCb = (ctx, queryError, queryType) => {
   cli.action.stop('error');
+
   if (!queryType) {
     handleGraphQLError(queryError);
   } else if (queryType === 'subscription') {
