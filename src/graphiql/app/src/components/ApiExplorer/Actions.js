@@ -3,7 +3,7 @@ import defaultState from './state';
 
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import { WebSocketLink } from 'apollo-link-ws';
-import { parse } from 'graphql';
+import { parse } from 'graphql/language';
 import { execute } from 'apollo-link';
 
 const REQUEST_PARAMS_CHANGED = 'ApiExplorer/REQUEST_PARAMS_CHANGED';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getIntrospectionQuery, buildClientSchema } from 'graphql';
+import { getIntrospectionQuery, buildClientSchema } from 'graphql/utilities';
 import GraphiQLExplorer from 'graphiql-explorer';
 
 import {

@@ -1,4 +1,4 @@
-const {parse, print} = require('graphql');
+const {parse, print} = require('graphql/language');
 
 const wsScheme = url => {
   const parts = url.split('//');
