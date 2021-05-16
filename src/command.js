@@ -96,7 +96,7 @@ class GraphqurlCommand extends Command {
 
   async getQueryString(args, flags) {
     if (flags.queryFile) {
-      const fileContent = await readFile(flags.queryFile, "utf8");
+      const fileContent = await readFile(flags.queryFile, 'utf8');
       return fileContent;
     }
     if (flags.query) {
