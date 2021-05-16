@@ -60,7 +60,7 @@ const testMutationCallback = async client => {
       console.log('✖ Mutation with callback');
       console.log(error);
       process.exit(1);
-    }
+    },
   );
   setTimeout(
     () => {
@@ -70,7 +70,7 @@ const testMutationCallback = async client => {
         console.log('✖ Mutation with callback');
       }
     },
-    5000
+    5000,
   );
 };
 

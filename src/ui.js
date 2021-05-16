@@ -158,7 +158,13 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
+  let schemaResponse;
+  try {
+    schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
+  } catch (e) {
+    cli.action.stop('error');
+    throw new Error('unable to introspect graphql schema at the given endpoint');
+  }
   cli.action.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);

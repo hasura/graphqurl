@@ -36,7 +36,7 @@ const query = async function (options, successCb, errorCb) {
                 error: `query with name '${name}' not found in input`,
               },
               null,
-              input
+              input,
             );
             return;
           }
@@ -51,7 +51,7 @@ const query = async function (options, successCb, errorCb) {
               error: `query with name '${name}' not found in input`,
             },
             null,
-            input
+            input,
           );
           return;
         }
@@ -65,7 +65,7 @@ const query = async function (options, successCb, errorCb) {
     errorCb(
       err,
       null,
-      input
+      input,
     );
   }
 
@@ -85,7 +85,7 @@ const query = async function (options, successCb, errorCb) {
               subscription: query,
               variables},
             callbackWrapper(successCb),
-            callbackWrapper(errorCb)
+            callbackWrapper(errorCb),
             );
           },
         },
@@ -95,7 +95,7 @@ const query = async function (options, successCb, errorCb) {
         query: query,
         variables},
       callbackWrapper(successCb),
-      callbackWrapper(errorCb)
+      callbackWrapper(errorCb),
       );
     }
   } catch (err) {

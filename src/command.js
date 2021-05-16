@@ -51,12 +51,16 @@ class GraphqurlCommand extends Command {
     };
 
     if (queryString === null) {
-      queryString = await executeQueryFromTerminalUI({
-        endpoint: endpoint,
-        headers,
-        variables,
-        name: flags.name,
-      }, successCallback, errorCallback);
+      try {
+        queryString = await executeQueryFromTerminalUI({
+          endpoint: endpoint,
+          headers,
+          variables,
+          name: flags.name,
+        }, successCallback, errorCallback);
+      } catch (e) {
+        this.error(e);
+      }
     }
 
     const queryOptions = {
