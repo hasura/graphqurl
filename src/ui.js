@@ -1,5 +1,5 @@
 const tk = require('terminal-kit');
-const {getIntrospectionQuery, buildClientSchema} = require('graphql/utilities') 
+const {getIntrospectionQuery, buildClientSchema} = require('graphql/utilities');
 const {parse} = require('graphql/language');
 const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
