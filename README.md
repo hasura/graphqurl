@@ -152,6 +152,7 @@ $ gq ENDPOINT [-q QUERY]
 | `--help`            | `-h`      | Outputs the command help text                                                                         |
 | `--version`         |           | Outputs CLI version                                                                                   |
 |`--queryFile`|| File to read the query from|
+|`--operationName`|| Name of the operation to execute from the query file|
 |`--variablesFile`|| JSON file to read the query variables from|
 
 ### Node Library
