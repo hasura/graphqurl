@@ -32,7 +32,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.graphiql) {
-      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlAddress, flags.graphiqlPort);
+      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlHost, flags.graphiqlPort);
       return;
     }
 
@@ -255,12 +255,13 @@ GraphqurlCommand.flags = {
     description: 'open graphiql with the given endpoint, headers, query and variables',
   }),
 
-  // specify port to run graphiql at
-  graphiqlAddress: flags.string({
+  // specify host to run graphiql at
+  graphiqlHost: flags.string({
     char: 'a',
     default: 'localhost',
-    description: 'address to use for graphiql',
+    description: 'host to use for graphiql',
   }),
+
   // specify port to run graphiql at
   graphiqlPort: flags.integer({
     char: 'p',
