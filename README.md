@@ -151,9 +151,10 @@ $ gq ENDPOINT [-q QUERY]
 | `--format`          |           | Output format for GraphQL schema after introspection. Options: `json`, `graphql` (Default: `graphql`) |
 | `--help`            | `-h`      | Outputs the command help text                                                                         |
 | `--version`         |           | Outputs CLI version                                                                                   |
-|`--queryFile`|| File to read the query from|
-|`--operationName`|| Name of the operation to execute from the query file|
-|`--variablesFile`|| JSON file to read the query variables from|
+|`--queryFile`        |           | File to read the query from                                                                           |
+|`--operationName`    |           | Name of the operation to execute from the query file                                                  |
+|`--variablesFile`    |           | JSON file to read the query variables from                                                            |
+
 
 ### Node Library
 
