@@ -8,7 +8,7 @@ console.dir("Executing query 'query { menu_items { name } }': ");
 client.query(
   {
     query: 'query { menu_items { name } }',
-  }
+  },
 ).then(response => console.log(JSON.stringify(response)))
 .catch(error => console.error(error));
 
@@ -17,7 +17,7 @@ client.query(
   {
     query: 'mutation ($name: String) {delete_menu_items(where: {name: {_eq: $name}}) {returning {name}}}',
     variables: {name: 'pizza'},
-  }
+  },
 ).then(() => console.log('Successfully executed delete mutation.'))
 .catch(error => console.error(error));
 
@@ -28,6 +28,6 @@ client.query(
     variables: {
       name: 'pasta',
     },
-  }
+  },
 ).then(() => console.log('Successfully executed insert mutation'))
 .catch(error => console.error(error));

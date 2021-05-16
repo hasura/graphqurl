@@ -46,7 +46,7 @@ const makeClient = options => {
             ...(headerOverrides || {}),
           },
           body: JSON.stringify({query, variables: (variables || {})}),
-        }
+        },
       );
       const responseObj = await response.json();
       if (hook) {

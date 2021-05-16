@@ -46,7 +46,7 @@ const createTable = async () => {
   };
   const response = await fetch(
     `${hgeUrl}/v1/query`,
-    createTableOpts
+    createTableOpts,
   );
 
   if (response.status !== 200) {

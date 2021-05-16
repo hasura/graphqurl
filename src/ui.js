@@ -161,7 +161,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   let schemaResponse;
   try {
     schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
-  } catch {
+  } catch (e) {
     cli.action.stop('error');
     throw new Error('unable to introspect graphql schema at the given endpoint');
   }

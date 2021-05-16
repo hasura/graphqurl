@@ -58,7 +58,7 @@ const testQueryCallback = async client => {
       console.log('✖ Query with callback');
       console.log(error);
       process.exit(1);
-    }
+    },
   );
   setTimeout(
     () => {
@@ -68,7 +68,7 @@ const testQueryCallback = async client => {
         console.log('✖ Query with callback');
       }
     },
-    5000
+    5000,
   );
 };
 
