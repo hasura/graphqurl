@@ -17,31 +17,28 @@ const getOperationFromQueryFileContent = (fileContent, operationName) => {
     const parsed = parse(fileContent);
     if (parsed.definitions.length > 1) {
       if (!operationName) {
-        throw new Error('this queryfile has multiple operations. Please choose an operation name using --operationName flag.')
-        return;
+        throw new Error('this queryfile has multiple operations. Please choose an operation name using --operationName flag.');
       }
       const operationDef = parsed.definitions.find(d => {
-        return d.name.value === operationName
+        return d.name.value === operationName;
       });
       if (!operationDef) {
         throw new Error('could not find the given operation name in the given queryFIle');
-        return;
       }
       const queryString = print({
         kind: 'Document',
-        definitions: [operationDef]
+        definitions: [operationDef],
       });
       return queryString;
-    } else {
-      return fileContent;
     }
-  } catch(e) {
-    throw new Error(e.message)
+    return fileContent;
+  } catch (e) {
+    throw new Error(e.message);
   }
-}
+};
 
 module.exports = {
   wsScheme,
   cloneObject,
-  getOperationFromQueryFileContent 
+  getOperationFromQueryFileContent,
 };
