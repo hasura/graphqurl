@@ -8,6 +8,7 @@ const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
 const {getIntrospectionQuery} = require('graphql');
 const {cli} = require('cli-ux');
+const {getOperationFromQueryFileContent} = require('./utils')
 const query = require('./query.js');
 
 // Convert fs.readFile into Promise version of same
@@ -97,7 +98,12 @@ class GraphqurlCommand extends Command {
   async getQueryString(args, flags) {
     if (flags.queryFile) {
       const fileContent = await readFile(flags.queryFile, 'utf8');
-      return fileContent;
+      try {
+        const operationString = getOperationFromQueryFileContent(fileContent, flags.operationName)
+        return operationString;
+      } catch (e) {
+        this.error(e.message);
+      }
     }
     if (flags.query) {
       return flags.query;
@@ -232,6 +238,9 @@ GraphqurlCommand.flags = {
   // file to read query from
   queryFile: flags.string({
     description: 'file to read the query from',
+  }),
+  operationName: flags.string({
+    description: 'name of the operation to execute from the query file',
   }),
 
   // file to read variables from
