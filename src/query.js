@@ -1,6 +1,6 @@
 const makeClient = require('./client');
 const {wsScheme} = require('./utils');
-const {parse} = require('graphql');
+const {parse} = require('graphql/language');
 
 const query = async function (options, successCb, errorCb) {
   const {query, endpoint, headers, variables, name} = options;

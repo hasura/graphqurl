@@ -1,6 +1,6 @@
 const {cli} = require('cli-ux');
 const {handleGraphQLError, handleServerError} = require('./error.js');
-const {buildClientSchema, printSchema} = require('graphql');
+const {buildClientSchema, printSchema} = require('graphql/utilities') 
 
 const querySuccessCb = (ctx, response, queryType) => {
   let out = ctx.flags.singleLine ? JSON.stringify({data: response.data}) : JSON.stringify({data: response.data}, null, 2);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import GraphiQL from 'graphiql';
 import PropTypes from 'prop-types';
-import { parse as sdlParse, print } from 'graphql';
+import { parse as sdlParse, print } from 'graphql/language';
 import snippets from 'graphiql-code-exporter/lib/snippets';
 import GraphiQLErrorBoundary from './GraphiQLErrorBoundary';
 import OneGraphExplorer from '../OneGraphExplorer/OneGraphExplorer';
