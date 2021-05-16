@@ -5,8 +5,6 @@ import ProgressBar from 'react-progress-bar-plus';
 import Modal from 'react-bootstrap/lib/Modal';
 import './progress-bar.scss';
 import { NOTIF_EXPANDED } from './Actions';
-import AceEditor from 'react-ace';
-import 'brace/mode/json';
 import ErrorBoundary from './ErrorBoundary';
 
 class App extends Component {
@@ -85,16 +83,7 @@ class App extends Component {
               <div className="content-fluid">
                 <div className="row">
                   <div className="col-md-12">
-                    <AceEditor
-                      mode="json"
-                      theme="github"
-                      name="notif_error"
-                      value={notifMsg}
-                      minLines={8}
-                      maxLines={100}
-                      width="100%"
-                      showPrintMargin={false}
-                    />
+                    {notifMsg}
                   </div>
                 </div>
               </div>
