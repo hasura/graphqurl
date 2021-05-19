@@ -45,7 +45,7 @@ Made with :heart: by <a href="https://hasura.io">Hasura</a>
     + [Using callbacks:](#using-callbacks)
     + [Using Promises:](#using-promises)
   * [API](#api)
-    + [createClient(options)](#createclient-options)
+    + [createClient(options)](#createclient)
     + [Client](#client)
 - [More Examples](#more-examples)
   * [Node Library](#node-library-1)
@@ -250,7 +250,7 @@ client.subscribe(
 
 ### API
 
-#### createClient(options)
+#### createClient
 
 The `createClient` function is available as a named export. It takes init options and returns `client`.
 
