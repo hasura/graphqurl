@@ -23,7 +23,7 @@
     "open": "7.3.1",
     "subscriptions-transport-ws": "0.9.18",
     "terminal-kit": "^1.45.4",
-    "ws": "7.4.2"
+    "ws": "7.4.5"
   },
   "devDependencies": {
     "@zeit/ncc": "^0.22.1",
