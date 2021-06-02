@@ -14,6 +14,9 @@ const query = require('./query.js');
 const paths = require('./ui/paths.js');
 const {indexSchema} = require('./ui/schema.js');
 
+/* we have a custom implementation of input field, since it is not easily extensible */
+const inputField = require('./ui/input-field.js');
+
 // FIXME: needs js idiomatic refactor eslint-disable-line no-warning-comments
 
 const introspectionFile = path.join(__dirname, 'queries', 'introspection.graphql');
@@ -207,7 +210,7 @@ function bracketStack(queryString) {
 }
 
 const autocompletion = schemas => {
-  return {autoComplete: suggest(schemas), autoCompleteMenu: true};
+  return {autoComplete: suggest(schemas), autoCompleteMenu: { selectedStyle: term.dim.black.bgWhite} };
 };
 
 // TODO: different inputs for each kind
@@ -216,7 +219,7 @@ const input = (schemas, history, value) => {
     ib.abort();
   }
   let opts = {default: value, history, ...autocompletion(schemas)};
-  ib = term.inputField(opts);
+  ib = inputField.call(term, opts);
   return ib.promise;
 };
 
@@ -311,7 +314,7 @@ const getValidQuery = async (schemas, history, value) => {
 };
 
 function letExpression(string) {
-  const pattern = /let\s+(?<name>\w+)(\s*:\s*(?<type>\w+))?\s*=\s*(?<value>.+)/;
+  const pattern = /let\s+(?<name>\w+)(\s*:\s*(?<type>\w+!?))?\s*=\s*(?<value>.+)/;
   const match = pattern.exec(string);
 
   if (!match) {
@@ -322,7 +325,11 @@ function letExpression(string) {
   expr.value = expr.value.replace(/(^\s+|\s+$)/g, '');
   expr.parsed = expr.value;
 
-  if (!expr.type) {
+  if (expr.type) {
+    if (/^".*"$/.test(expr.value)) {
+      expr.parsed = expr.value.replace(/(^"|"$)/g, '');
+    }
+  } else {
     if (/^\d+\.\d+$/.test(expr.value)) {
       expr.type = 'Float';
       expr.parsed = parseFloat(expr.value);
@@ -369,10 +376,26 @@ function reportErrors(kind, string, errors) {
   }
 }
 
+function querySignature(vars) {
+  return Array
+    .from(variables)
+    .filter(([k, _]) => vars.has('$' + k))
+    .map(([k, defn]) => `$${k}: ${defn.type}`)
+    .join(', ');
+}
+
 async function queryExpression(currentLine, schema) {
   let errors;
   let queryString = [...lines, currentLine].join('\n');
   try {
+    if (/^(query|mutation)\s*{/.test(queryString) && variables.size > 0) {
+      let vars = new Set([...queryString.matchAll(/\$\w+/g)].map(m => m[0]));
+      if (vars.size > 0) {
+        queryString = queryString.replace(/^(query|mutation)/, (match) => {
+          return `${match}(${querySignature(vars)})`;
+        });
+      }
+    }
     errors = await validateQuery(parse(queryString), schema);
   } catch (e) {
     errors = [e];
@@ -387,14 +410,14 @@ const getQueryFromTerminalUI = (schemas, history, value)  => {
   });
 };
 
-const historyFile = path.join(directories.config, 'history');
+const historyFile = path.join(directories.config, 'history.json');
 
 const writeHistory = history => {
   if (history.length > 0) {
     fs.mkdir(directories.config, {recursive: true}, err => {
       if (err) return;
 
-      fs.writeFile(historyFile, history.join('\n'), 'utf8', err => {
+      fs.writeFile(historyFile, JSON.stringify(history), 'utf8', err => {
         if (!err) return;
         console.warn('Could not write history file');
       });
@@ -405,7 +428,7 @@ const writeHistory = history => {
 const loadHistory = async () => {
   try {
     let fileContent = await promisify(fs.readFile)(historyFile, 'utf8');
-    return fileContent.split('\n');
+    return JSON.parse(fileContent);
   } catch (e) {
     if (e.code !== 'ENOENT') {
       console.warn(e);
