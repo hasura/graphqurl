@@ -1,3 +1,5 @@
+const fs = require('fs');
+const {promisify} = require('util');
 const {Command, flags} = require('@oclif/command');
 const {CLIError} = require('@oclif/errors');
 const url = require('url');
@@ -91,6 +93,10 @@ class GraphqurlCommand extends Command {
 
   async getQueryString(args, flags) {
     if (flags.query) {
+      if (!flags.query.includes('{')) {
+        // probably a filename
+        return promisify(fs.readFile)(flags.query, 'utf8');
+      }
       return flags.query;
     }
     return null;
