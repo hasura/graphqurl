@@ -84,7 +84,7 @@ class GraphqurlCommand extends Command {
 
   stop(message) {
     if (!this.flags.silent) {
-      cli.action.stop(message)
+      cli.action.stop(message);
     }
   }
 
