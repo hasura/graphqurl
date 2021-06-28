@@ -1,6 +1,5 @@
 import defaultState from './State';
 import jsonFormat from './JSONFormat';
-import Notifications from 'react-notification-system-redux';
 
 const LOAD_REQUEST = 'App/ONGOING_REQUEST';
 const DONE_REQUEST = 'App/DONE_REQUEST';
@@ -10,69 +9,6 @@ const CONNECTION_FAILED = 'App/CONNECTION_FAILED';
 const CLOSE_MODAL = 'App/CLOSE_MODAL';
 const NOTIF_EXPANDED = 'App/NOTIF_EXPANDED';
 const NOTIF_MSG = 'App/NOTIF_MSG';
-
-/**
- * Global notification function
- * options: type default, description
- * level: string info, {success, error, warning, info}
- * position: string br, {tr, tl, tc, br, bl, bc}
- * title: string null
- * message: string null
- * autoDismiss: integer 5, set to 0 to not auto-dismiss
- * dismissible: bool true, set if user can dismiss notification
- * action: object null, action button with label string and callback function
- * children: element/string, null, add custom element, over-rides action
- * onAdd: function, null, called when notification is successfully created, 1st argument is the notification
- * onRemove: function, null, same as onAdd
- * uid: integer/string, null, unique identifier to the notification, same uid will not be shown again
- */
-const showNotification = ({
-  level = 'info',
-  position = 'tr',
-  json,
-  ...options
-} = {}) => {
-  return dispatch => {
-    if (level === 'success') {
-      dispatch(Notifications.removeAll());
-    }
-    dispatch(
-      Notifications.show(
-        {
-          position,
-          autoDismiss: level === 'error' ? 0 : 5,
-          dismissible: level === 'error' ? 'click' : 'both',
-          children: json ? jsonFormat(json) : null,
-          ...options,
-        },
-        level
-      )
-    );
-  };
-};
-
-const showTempNotification = ({
-  level = 'info',
-  position = 'tr',
-  json,
-  ...options
-} = {}) => {
-  return dispatch => {
-    dispatch(Notifications.removeAll());
-    dispatch(
-      Notifications.show(
-        {
-          position,
-          autoDismiss: 2,
-          dismissible: 'both',
-          children: json ? jsonFormat(json) : null,
-          ...options,
-        },
-        level
-      )
-    );
-  };
-};
 
 const notifExpand = isExpanded => ({ type: NOTIF_EXPANDED, data: isExpanded });
 const notifMsg = finalMsg => ({ type: NOTIF_MSG, data: finalMsg });
@@ -160,6 +96,4 @@ export {
   NOTIF_EXPANDED,
   notifExpand,
   notifMsg,
-  showNotification,
-  showTempNotification,
 };

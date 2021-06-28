@@ -32,7 +32,7 @@ const testSubscriptionPromise = async client => {
       console.log('✖ Subscription with promise');
       console.log(JSON.stringify(error, null, 2));
       process.exit(1);
-    }
+    },
   );
   const mutationResp = await client.query({
     ...subOpts,
@@ -56,7 +56,7 @@ const testSubscriptionPromise = async client => {
           console.log('Mutation did not trigger an event', respLength);
         }
       },
-      15000
+      15000,
     );
   }
 };
@@ -92,7 +92,7 @@ const testSubscriptionCallback = async client => {
       console.log('✖ Subscription with callback');
       console.log(JSON.stringify(error, null, 2));
       process.exit(1);
-    }
+    },
   );
   const mutationResp = await client.query({
     ...subOpts,
@@ -116,7 +116,7 @@ const testSubscriptionCallback = async client => {
           console.log('✖ Subscription with callback');
         }
       },
-      15000
+      15000,
     );
   }
 };

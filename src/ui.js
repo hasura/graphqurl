@@ -1,5 +1,6 @@
 const tk = require('terminal-kit');
-const {getIntrospectionQuery, buildClientSchema, parse} = require('graphql');
+const {getIntrospectionQuery, buildClientSchema} = require('graphql/utilities');
+const {parse} = require('graphql/language');
 const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
@@ -158,10 +159,14 @@ const executeQueryFromTerminalUI = async (ctx, queryOptions, successCb, errorCb)
     endpoint,
     headers,
   });
-  const schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
-
+  let schemaResponse;
+  try {
+    schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
+  } catch (e) {
+    ctx.stop('error');
+    throw new Error('unable to introspect graphql schema at the given endpoint');
+  }
   ctx.stop('done');
-
   const r = schemaResponse.data;
   // term.fullscreen(true);
   schema = buildClientSchema(r);

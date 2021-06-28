@@ -5,7 +5,7 @@
 resources:
   containers:
   - container: nodejs
-    image: node:8
+    image: node:12
   - container: postgres
     image: postgres:10-alpine
     env:

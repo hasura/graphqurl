@@ -1,12 +1,18 @@
 const {Command, flags} = require('@oclif/command');
 const {CLIError} = require('@oclif/errors');
 const url = require('url');
+const fs = require('fs');
+const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
 const runGraphiQL = require('./graphiql/server');
-const {getIntrospectionQuery} = require('graphql');
+const {getIntrospectionQuery} = require('graphql/utilities');
 const {cli} = require('cli-ux');
+const {getOperationFromQueryFileContent} = require('./utils');
 const query = require('./query.js');
+
+// Convert fs.readFile into Promise version of same
+const readFile = util.promisify(fs.readFile);
 
 class GraphqurlCommand extends Command {
   async run() {
@@ -26,7 +32,7 @@ class GraphqurlCommand extends Command {
     }
 
     if (flags.graphiql) {
-      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlAddress, flags.graphiqlPort);
+      runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlHost, flags.graphiqlPort);
       return;
     }
 
@@ -45,12 +51,16 @@ class GraphqurlCommand extends Command {
     };
 
     if (queryString === null) {
-      queryString = await executeQueryFromTerminalUI(this, {
-        endpoint: endpoint,
-        headers,
-        variables,
-        name: flags.name,
-      }, successCallback, errorCallback);
+      try {
+        queryString = await executeQueryFromTerminalUI(this, {
+          endpoint: endpoint,
+          headers,
+          variables,
+          name: flags.name,
+        }, successCallback, errorCallback);
+      } catch (e) {
+        this.error(e);
+      }
     }
 
     const queryOptions = {
@@ -103,6 +113,15 @@ class GraphqurlCommand extends Command {
   }
 
   async getQueryString(args, flags) {
+    if (flags.queryFile) {
+      const fileContent = await readFile(flags.queryFile, 'utf8');
+      try {
+        const operationString = getOperationFromQueryFileContent(fileContent, flags.operationName);
+        return operationString;
+      } catch (e) {
+        this.error(e.message);
+      }
+    }
     if (flags.query) {
       return flags.query;
     }
@@ -112,6 +131,7 @@ class GraphqurlCommand extends Command {
   async getQueryVariables(args, flags) {
     let possibleFlags = [
       flags.variable,
+      flags.variablesFile,
       flags.variablesJSON,
     ];
     let flagsCount = 0;
@@ -129,6 +149,13 @@ class GraphqurlCommand extends Command {
         variablesObject = JSON.parse(flags.variablesJSON);
       } catch (err) {
         this.error(`error parsing --variablesJSON: ${err}`);
+      }
+    }
+    if (flags.variablesFile) {
+      try {
+        variablesObject = JSON.parse(await readFile(flags.variablesFile));
+      } catch (err) {
+        this.error(`error reading and parsing --variablesFile: ${err}`);
       }
     }
     if (flags.variable) {
@@ -225,6 +252,19 @@ GraphqurlCommand.flags = {
     multiple: false,
   }),
 
+  // file to read query from
+  queryFile: flags.string({
+    description: 'file to read the query from',
+  }),
+  operationName: flags.string({
+    description: 'name of the operation to execute from the query file',
+  }),
+
+  // file to read variables from
+  variablesFile: flags.string({
+    description: 'JSON file to read the query variables from',
+  }),
+
   // run graphiql
   graphiql: flags.boolean({
     default: false,
@@ -232,12 +272,13 @@ GraphqurlCommand.flags = {
     description: 'open graphiql with the given endpoint, headers, query and variables',
   }),
 
-  // specify port to run graphiql at
-  graphiqlAddress: flags.string({
+  // specify host to run graphiql at
+  graphiqlHost: flags.string({
     char: 'a',
     default: 'localhost',
-    description: 'address to use for graphiql',
+    description: 'host to use for graphiql',
   }),
+
   // specify port to run graphiql at
   graphiqlPort: flags.integer({
     char: 'p',

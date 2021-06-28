@@ -20,7 +20,7 @@ const deleteTable = async () => {
   };
   await fetch(
     `${hgeUrl}/v1/query`,
-    deleteTableOpts
+    deleteTableOpts,
   );
 };
 

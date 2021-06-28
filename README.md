@@ -42,10 +42,10 @@ Made with :heart: by <a href="https://hasura.io">Hasura</a>
     + [Args](#args)
     + [Flag Reference](#flag-reference)
   * [Node Library](#node-library)
-    + [Using callbacks:](#using-callbacks-)
-    + [Using Promises:](#using-promises-)
+    + [Using callbacks:](#using-callbacks)
+    + [Using Promises:](#using-promises)
   * [API](#api)
-    + [createClient(options)](#createclient-options-)
+    + [createClient(options)](#createclient)
     + [Client](#client)
 - [More Examples](#more-examples)
   * [Node Library](#node-library-1)
@@ -144,13 +144,17 @@ $ gq ENDPOINT [-q QUERY]
 | `--variable`        | `-v`      | Variables used in the query                                                                           |
 | `--variablesJSON`   | `-n`      | Variables used in the query as JSON                                                                   |
 | `--graphiql`        | `-i`      | Open GraphiQL with the given endpoint, headers, query and variables                                   |
-| `--graphiqlAddress` | `-a`      | Address to use for GraphiQL. (Default: `localhost`)                                                   |
+| `--graphiqlHost` | `-a`      | Host to use for GraphiQL. (Default: `localhost`)                                                   |
 | `--graphiqlPort`    | `-p`      | Port to use for GraphiQL                                                                              |
 | `--singleLine`      | `-l`      | Prints output in a single line, does not prettify                                                     |
 | `--introspect`      |           | Introspect the endpoint and get schema                                                                |
 | `--format`          |           | Output format for GraphQL schema after introspection. Options: `json`, `graphql` (Default: `graphql`) |
 | `--help`            | `-h`      | Outputs the command help text                                                                         |
 | `--version`         |           | Outputs CLI version                                                                                   |
+|`--queryFile`        |           | File to read the query from                                                                           |
+|`--operationName`    |           | Name of the operation to execute from the query file                                                  |
+|`--variablesFile`    |           | JSON file to read the query variables from                                                            |
+
 
 ### Node Library
 
@@ -246,7 +250,7 @@ client.subscribe(
 
 ### API
 
-#### createClient(options)
+#### createClient
 
 The `createClient` function is available as a named export. It takes init options and returns `client`.
 
