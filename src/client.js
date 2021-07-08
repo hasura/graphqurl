@@ -36,15 +36,22 @@ const makeClient = options => {
       variables,
       headers: headerOverrides,
     } = queryOptions;
+
+    const headers = {
+      ...clientContext.headers,
+      ...(headerOverrides || {}),
+    };
+    const isExistContentTypeKey = Object.keys(headers).some(key => /content-type/gi.test(key));
+    if (!isExistContentTypeKey) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     try {
       const response = await fetch(
         clientContext.endpoint,
         {
           method: 'POST',
-          headers: {
-            ...clientContext.headers,
-            ...(headerOverrides || {}),
-          },
+          headers,
           body: JSON.stringify({query, variables: (variables || {})}),
         },
       );
