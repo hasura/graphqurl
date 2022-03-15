@@ -225,7 +225,7 @@ const client = createClient({
   endpoint: 'https://my-graphql-endpoint/graphql',
   headers: {
     'Authorization': 'Bearer <token>'
-  }
+  },
   websocket: {
     endpoint: 'wss://my-graphql-endpoint/graphql',
     onConnectionSuccess: () => console.log('Connected'),
