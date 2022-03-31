@@ -43,7 +43,7 @@
     "apollo-link": "^1.2.2",
     "apollo-link-ws": "^1.0.8",
     "babel-plugin-transform-class-properties": "^6.24.1",
-    "graphiql": "1.0.0-alpha.0",
+    "graphiql": "1.4.7",
     "graphiql-code-exporter": "^2.0.8",
     "graphiql-explorer": "^0.6.2",
     "graphql": "^14.3.0",
