@@ -23,7 +23,7 @@ const introspectionFile = path.join(__dirname, 'queries', 'introspection.graphql
 
 const KINDS = [
   'query', 'mutation', 'fragment', 'import',
-  'let', 'help', paths.KIND, 'quit', 'reload-schema'
+  'let', 'help', paths.KIND_VERBOSE, paths.KIND, 'quit', 'reload-schema'
 ];
 
 var term = tk.terminal;
@@ -86,8 +86,9 @@ const neverEmpty = f => x => {
 const suggest = ({schema, indexedSchema}) => neverEmpty(currentLine => {
   let prefix = [...lines, ''].join('\n');
   let inputString = [...lines, currentLine].join('\n');
+  let kind = inputKind(inputString);
 
-  switch (inputKind(inputString)) {
+  switch (kind) {
   case 'import':
     return suggestImports(inputString);
   case 'query':
@@ -97,7 +98,8 @@ const suggest = ({schema, indexedSchema}) => neverEmpty(currentLine => {
   case 'let':
     return suggestVariables(schema, inputString);
   case paths.KIND:
-    return paths.suggestPath(schema, indexedSchema, inputString);
+  case paths.KIND_VERBOSE:
+    return paths.suggestPath(kind, schema, indexedSchema, inputString);
   case 'help':
   case 'quit':
   case 'reload-schema':
@@ -302,7 +304,8 @@ const getValidQuery = async (schemas, history, value) => {
     reportErrors(kind, qs, expr.errors);
     return expr;
   case paths.KIND:
-    expr = paths.typeExpression(schemas, qs);
+  case paths.KIND_VERBOSE:
+    expr = paths.typeExpression(kind, schemas, qs);
     reportErrors(kind, qs, expr.errors);
     return expr;
   case 'fragment':
@@ -358,6 +361,7 @@ function exprToString(expr) {
     case 'let':
       return `let ${expr.name} : ${expr.type} = ${expr.value}`;
     case paths.KIND:
+    case paths.KIND_VERBOSE:
       return expr.asInputString();
   }
 }
@@ -491,7 +495,10 @@ function printHelp() {
     [ 'let [name] : [type] = [value]', 'Define a variable' ],
     [ 'fragment [name] on [type] { .. }', 'Define a fragment' ],
     [ 'import [file]', 'Import fragments from a file' ],
-    [ 'type [path]', 'Get type information about a path' ],
+    [ `${paths.KIND} [path]`, 'Get type information about a path' ],
+    [ `${paths.KIND_VERBOSE} [path]`, 'Get type information about a path, including fields' ],
+    [ 'reload-schema', 'Refetch the schema' ],
+    [ 'quit', 'Quit the REPL'],
     [ 'help', 'Print this help information' ]
   ], {width: 72});
 }
@@ -593,6 +600,7 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
       variables.set(res.name, res);
       break;
     case paths.KIND:
+    case paths.KIND_VERBOSE:
       history.push(exprToString(res));
       res.render(term);
       break;
