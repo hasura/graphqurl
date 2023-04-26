@@ -151,7 +151,7 @@
     "webpack": "4.42.0",
     "webpack-cli": "3.3.11",
     "webpack-dev-middleware": "3.7.2",
-    "webpack-hot-middleware": "2.25.0",
+    "webpack-hot-middleware": "2.25.3",
     "terser-webpack-plugin": "2.3.5",
     "webpack-isomorphic-tools": "3.0.6"
   },
