@@ -141,7 +141,7 @@ term.on('key', async function (key) {
   }
 });
 
-const getQueryFromTerminalUI = ()  => {
+const getQueryFromTerminalUI = () => {
   return new Promise((resolve, reject) => {
     gResolve = resolve;
     gReject = reject;
@@ -149,15 +149,17 @@ const getQueryFromTerminalUI = ()  => {
   });
 };
 
-const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
+const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb) => {
   const {
     endpoint,
     headers,
+    allowInsecure,
   } = queryOptions;
   cli.action.start('Introspecting schema');
   let client = makeClient({
     endpoint,
     headers,
+    allowInsecure,
   });
   let schemaResponse;
   try {
