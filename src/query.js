@@ -2,11 +2,18 @@ const makeClient = require('./client');
 const {wsScheme} = require('./utils');
 const {parse} = require('graphql/language');
 
+let nodeHttps;
+try {
+  nodeHttps = require('node:https');
+} catch (err) {
+}
+
 const query = async function (options, successCb, errorCb) {
-  const {query, endpoint, headers, variables, name} = options;
+  const {query, endpoint, headers, variables, name, allowInsecure} = options;
   let client = makeClient({
     endpoint,
     headers,
+    allowInsecure,
   });
 
   let input, queryType;
@@ -83,7 +90,8 @@ const query = async function (options, successCb, errorCb) {
           onConnectionSuccess: () => {
             client.subscribe({
               subscription: query,
-              variables},
+              variables,
+            },
             callbackWrapper(successCb),
             callbackWrapper(errorCb),
             );
@@ -93,7 +101,8 @@ const query = async function (options, successCb, errorCb) {
     } else {
       await client.query({
         query: query,
-        variables},
+        variables,
+      },
       callbackWrapper(successCb),
       callbackWrapper(errorCb),
       );

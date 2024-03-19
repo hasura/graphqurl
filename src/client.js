@@ -15,9 +15,11 @@ const makeClient = options => {
     websocket,
     headers,
     hook,
+    allowInsecure,
   } = options;
 
   const clientContext = {
+    httpsAgent: null,
     endpoint,
     headers: cloneObject(headers || {}),
     websocket: {
@@ -29,6 +31,15 @@ const makeClient = options => {
       subscriptions: {},
     },
   };
+
+  if (allowInsecure) {
+    try {
+      const nodeHttps = require('node:https');
+      clientContext.httpsAgent = new nodeHttps.Agent({rejectUnauthorized: false});
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   const executeQuery = async (queryOptions, successCallback, errorCallback) => {
     const {
@@ -53,6 +64,7 @@ const makeClient = options => {
           method: 'POST',
           headers,
           body: JSON.stringify({query, variables: (variables || {})}),
+          agent: clientContext.httpsAgent,
         },
       );
       const responseObj = await response.json();

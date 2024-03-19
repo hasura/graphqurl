@@ -57,6 +57,7 @@ class GraphqurlCommand extends Command {
           headers,
           variables,
           name: flags.name,
+          allowInsecure: flags.insecure,
         }, successCallback, errorCallback);
       } catch (e) {
         this.error(e);
@@ -69,6 +70,7 @@ class GraphqurlCommand extends Command {
       headers,
       variables,
       name: flags.name,
+      allowInsecure: flags.insecure,
     };
 
     cli.action.start('Executing query');
@@ -290,6 +292,12 @@ GraphqurlCommand.flags = {
     description: 'output format for graphql schema after introspection',
     default: 'graphql',
     options: ['json', 'graphql'],
+  }),
+
+  insecure: flags.boolean({
+    default: false,
+    char: 'k',
+    description: 'allow unauthorized TLS certificates (e.g. self-signed)',
   }),
 };
 
