@@ -5,7 +5,7 @@
 resources:
   containers:
   - container: nodejs
-    image: node:12
+    image: node:16
   - container: postgres
     image: postgres:10-alpine
     env:
@@ -25,7 +25,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'Ubuntu-16.04'
+  vmImage: 'Ubuntu-20.04'
 
 container: nodejs
 
