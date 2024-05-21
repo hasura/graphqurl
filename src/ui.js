@@ -1,7 +1,6 @@
 const tk = require('terminal-kit');
 const {getIntrospectionQuery, buildClientSchema} = require('graphql/utilities');
 const {parse} = require('graphql/language');
-const {cli} = require('cli-ux');
 const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
 const {Position} = require('graphql-language-service-utils');
 const makeClient = require('./client');
@@ -149,12 +148,12 @@ const getQueryFromTerminalUI = ()  => {
   });
 };
 
-const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => {
+const executeQueryFromTerminalUI = async (ctx, queryOptions, successCb, errorCb)  => {
   const {
     endpoint,
     headers,
   } = queryOptions;
-  cli.action.start('Introspecting schema');
+  ctx.start('Introspecting schema');
   let client = makeClient({
     endpoint,
     headers,
@@ -163,10 +162,10 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   try {
     schemaResponse = await client.query({query: getIntrospectionQuery()}, null, errorCb);
   } catch (e) {
-    cli.action.stop('error');
+    ctx.stop('error');
     throw new Error('unable to introspect graphql schema at the given endpoint');
   }
-  cli.action.stop('done');
+  ctx.stop('done');
   const r = schemaResponse.data;
   // term.fullscreen(true);
   schema = buildClientSchema(r);
@@ -176,9 +175,9 @@ const executeQueryFromTerminalUI = async (queryOptions, successCb, errorCb)  => 
   while (!exit) {
     /* eslint-disable-next-line no-await-in-loop */
     const queryString = await getQueryFromTerminalUI();
-    cli.action.start('Waiting');
+    ctx.start('Waiting');
     await query({query: queryString, endpoint, headers}, successCb, errorCb);
-    cli.action.stop('done');
+    ctx.stop('done');
   }
 };
 
