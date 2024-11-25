@@ -1,7 +1,7 @@
 {
   "name": "graphqurl",
   "description": "cURL for GraphQL - CLI and JS library for making GraphQL queries",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Hasura",
   "bin": {
     "gq": "./bin/run",
@@ -16,8 +16,7 @@
     "cli-ux": "^4.7.3",
     "express": "^4.19.2",
     "graphql": "15.5.0",
-    "graphql-language-service-interface": "^2.8.2",
-    "graphql-language-service-utils": "2.5.1",
+    "graphql-language-service": "^5.3.0",
     "isomorphic-fetch": "3.0.0",
     "isomorphic-ws": "4.0.1",
     "open": "7.3.1",
