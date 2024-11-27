@@ -51,9 +51,8 @@
   "scripts": {
     "eslint": "eslint .",
     "eslintfix": "eslint . --fix",
-    "build-graphiql": "cd src/graphiql/app && npm install && npm run build",
     "posttest": "npm run eslint",
-    "prep": "npm run build-graphiql && npm run bundle",
+    "prep": "npm run bundle",
     "prelink": "npm run prep",
     "launch": "npm run prep && npm publish",
     "clearteststate": "node test/clearstate.test.js",
