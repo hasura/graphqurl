@@ -130,9 +130,6 @@ $ gq ENDPOINT [-q QUERY]
 | `--header`          | `-H`      | request header                                                                                        |
 | `--variable`        | `-v`      | Variables used in the query                                                                           |
 | `--variablesJSON`   | `-n`      | Variables used in the query as JSON                                                                   |
-| `--graphiql`        | `-i`      | Open GraphiQL with the given endpoint, headers, query and variables                                   |
-| `--graphiqlHost` | `-a`      | Host to use for GraphiQL. (Default: `localhost`)                                                   |
-| `--graphiqlPort`    | `-p`      | Port to use for GraphiQL                                                                              |
 | `--singleLine`      | `-l`      | Prints output in a single line, does not prettify                                                     |
 | `--introspect`      |           | Introspect the endpoint and get schema                                                                |
 | `--format`          |           | Output format for GraphQL schema after introspection. Options: `json`, `graphql` (Default: `graphql`) |
