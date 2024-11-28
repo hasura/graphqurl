@@ -5,7 +5,7 @@ const fs = require('fs');
 const util = require('util');
 const {querySuccessCb, queryErrorCb} = require('./callbacks.js');
 const executeQueryFromTerminalUI = require('./ui');
-const runGraphiQL = require('./graphiql/server');
+// const runGraphiQL = require('./graphiql/server');
 const {getIntrospectionQuery} = require('graphql/utilities');
 const {cli} = require('cli-ux');
 const {getOperationFromQueryFileContent} = require('./utils');
@@ -31,10 +31,12 @@ class GraphqurlCommand extends Command {
       throw new CLIError('endpoint is not a valid url');
     }
 
+    /*
     if (flags.graphiql) {
       runGraphiQL(endpoint, queryString, headers, variables, flags.graphiqlHost, flags.graphiqlPort);
       return;
     }
+    */
 
     if (flags.introspect) {
       queryString = getIntrospectionQuery();
@@ -169,7 +171,6 @@ GraphqurlCommand.description = `GraphQURL: cURL for GraphQL
 • Execute GraphQL queries from terminal
 • Supports queries, mutations, subscriptions, with headers and variables
 • Auto-complete queries on the CLI
-• Launch GraphiQL (with headers UI) on any endpoint
 
 # Examples:
 
@@ -178,9 +179,6 @@ gq https://my-graphql-endpoint -q 'query { table { column } }'
 
 # Make a query with CLI auto complete (this will show a gql prompt)
 gq https://my-graphql-endpoint
-
-# Open GraphiQL
-gq https://my-graphql-endpoint -i
 
 # Add a custom header
 gq https://my-graphql-endpoint \\
@@ -254,6 +252,7 @@ GraphqurlCommand.flags = {
   }),
 
   // run graphiql
+  /*
   graphiql: flags.boolean({
     default: false,
     char: 'i',
@@ -273,7 +272,7 @@ GraphqurlCommand.flags = {
     default: 4500,
     description: 'port to use for graphiql',
   }),
-
+*/
   // do not prettify the output
   singleLine: flags.boolean({
     char: 'l',

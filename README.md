@@ -11,17 +11,16 @@
 
 `graphqurl` is a curl like CLI for GraphQL. It's features include:
 - CLI for making GraphQL queries. It also provisions queries with autocomplete.
-- Run a custom GraphiQL, where you can specify request's headers, locally against any endpoint
 - Use as a library with Node.js or from the browser
 - Supports subscriptions
 - Export GraphQL schema
+
+Note: v2.0.0 onwards, support for GraphiQL (UI) is removed. See this [issue](https://github.com/hasura/graphqurl/issues/153) for more details. Use v1.0.3 for GraphiQL feature.
 
 Made with :heart: by <a href="https://hasura.io">Hasura</a>
 
 ----------------
 ![Graphqurl Demo](assets/subscription.gif)
----
-![GraphiQL Demo](assets/graphiql.gif)
 ---
 ![Subscriptions triggering bash](assets/bash_trigger.gif)
 
@@ -35,7 +34,6 @@ Made with :heart: by <a href="https://hasura.io">Hasura</a>
   * [CLI](#cli)
     + [Query](#query)
     + [Auto-complete](#auto-complete)
-    + [GraphiQL](#graphiql)
     + [Subscription](#subscription)
     + [Export schema](#export-schema)
   * [Command](#command)
@@ -93,17 +91,6 @@ gql>
 
 You can use `TAB` to trigger auto-complete. `Ctrl+C` to cancel the input and
 `Ctrl+Q`/`Enter` to execute the query.
-
-#### GraphiQL
-
-Open GraphiQL with a given endpoint:
-
-```bash
-gq <endpoint> -i
-```
-
-> This is a custom GraphiQL where you can specify request's headers.
-
 
 #### Subscription
 

@@ -2,8 +2,7 @@ const tk = require('terminal-kit');
 const {getIntrospectionQuery, buildClientSchema} = require('graphql/utilities');
 const {parse} = require('graphql/language');
 const {cli} = require('cli-ux');
-const {validateQuery, getAutocompleteSuggestions} = require('graphql-language-service-interface');
-const {Position} = require('graphql-language-service-utils');
+const {Position, validateQuery, getAutocompleteSuggestions} = require('graphql-language-service');
 const makeClient = require('./client');
 const query = require('./query.js');
 
