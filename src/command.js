@@ -151,10 +151,10 @@ class GraphqurlCommand extends Command {
     if (flags.variable) {
       for (let v of flags.variable) {
         const parts = v.split('=');
-        if (parts.length !== 2) {
-          this.error(`cannot parse variable '${v} (multiple '=')`);
+        var val = parts.slice(1).join('=').trim();
+        if (val.length === 0) {
+          this.error(`cannot parse variable '${v} (no '=' found)`);
         }
-        var val = parts[1].trim();
         try {
           val = JSON.parse(val);
         } catch (err) {
